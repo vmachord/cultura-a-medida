@@ -2,95 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ============================================
+   Cultura a Medida — Mediterranean Design System
+   All colors MUST be HSL.
+   ============================================ */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Mediterranean palette */
+    --background: 38 38% 95%;          /* #f5f0e8 cream */
+    --foreground: 145 38% 14%;         /* #1a3c2a deep olive */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 40 40% 97%;
+    --card-foreground: 145 38% 14%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 40 40% 97%;
+    --popover-foreground: 145 38% 14%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 145 38% 14%;            /* deep olive */
+    --primary-foreground: 38 38% 95%;
+    --primary-glow: 145 30% 30%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 35 50% 70%;           /* sand #e8a87c */
+    --secondary-foreground: 145 38% 14%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 38 25% 88%;
+    --muted-foreground: 145 15% 35%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 13 50% 53%;              /* terracotta #c4654a */
+    --accent-foreground: 40 40% 97%;
+    --accent-soft: 13 60% 88%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 40 40% 97%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 38 25% 82%;
+    --input: 38 25% 82%;
+    --ring: 13 50% 53%;
 
-    --radius: 0.5rem;
+    --radius: 0.875rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Facility type colors */
+    --type-museum: 13 50% 53%;
+    --type-library: 145 38% 28%;
+    --type-theater: 280 35% 45%;
+    --type-cultural: 35 70% 50%;
+    --type-exhibition: 200 50% 40%;
+    --type-other: 145 15% 45%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(13 50% 53%) 0%, hsl(28 60% 65%) 100%);
+    --gradient-earth: linear-gradient(135deg, hsl(145 38% 14%) 0%, hsl(145 30% 25%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(38 38% 95%) 0%, hsl(35 50% 90%) 100%);
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Shadows */
+    --shadow-soft: 0 2px 8px -2px hsl(145 38% 14% / 0.08);
+    --shadow-elegant: 0 12px 36px -16px hsl(145 38% 14% / 0.18);
+    --shadow-warm: 0 8px 28px -10px hsl(13 50% 53% / 0.35);
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar */
+    --sidebar-background: 145 38% 14%;
+    --sidebar-foreground: 38 38% 95%;
+    --sidebar-primary: 13 50% 53%;
+    --sidebar-primary-foreground: 40 40% 97%;
+    --sidebar-accent: 145 30% 22%;
+    --sidebar-accent-foreground: 38 38% 95%;
+    --sidebar-border: 145 20% 22%;
+    --sidebar-ring: 13 50% 53%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 145 30% 8%;
+    --foreground: 38 38% 95%;
+    --card: 145 30% 12%;
+    --card-foreground: 38 38% 95%;
+    --popover: 145 30% 12%;
+    --popover-foreground: 38 38% 95%;
+    --primary: 38 38% 95%;
+    --primary-foreground: 145 38% 14%;
+    --secondary: 145 20% 22%;
+    --secondary-foreground: 38 38% 95%;
+    --muted: 145 20% 18%;
+    --muted-foreground: 38 20% 70%;
+    --accent: 13 50% 53%;
+    --accent-foreground: 40 40% 97%;
+    --accent-soft: 13 30% 22%;
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 40 40% 97%;
+    --border: 145 20% 22%;
+    --input: 145 20% 22%;
+    --ring: 13 50% 53%;
   }
 }
 
@@ -99,7 +100,73 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
   }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    @apply tracking-tight;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  .font-body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+
+  .bg-gradient-warm { background: var(--gradient-warm); }
+  .bg-gradient-earth { background: var(--gradient-earth); }
+  .bg-gradient-soft { background: var(--gradient-soft); }
+
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-elegant { box-shadow: var(--shadow-elegant); }
+  .shadow-warm { box-shadow: var(--shadow-warm); }
+
+  .text-balance { text-wrap: balance; }
+}
+
+/* Leaflet overrides for our design system */
+.leaflet-container {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: hsl(var(--muted));
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: var(--shadow-elegant);
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+}
+
+.leaflet-popup-tip {
+  background: hsl(var(--card));
+}
+
+.cam-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.cam-marker-inner {
+  transform: rotate(45deg);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
 }
