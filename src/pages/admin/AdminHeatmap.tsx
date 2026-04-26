@@ -39,12 +39,13 @@ export default function AdminHeatmap() {
   }, []);
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (loading || !containerRef.current || mapRef.current) return;
     const map = L.map(containerRef.current).setView(VALENCIA_CENTER, 12);
     L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", { attribution: "© OpenStreetMap © CARTO" }).addTo(map);
     mapRef.current = map;
-    return () => { map.remove(); mapRef.current = null; };
-  }, []);
+    setTimeout(() => map.invalidateSize(), 0);
+    return () => { map.remove(); mapRef.current = null; heatRef.current = null; };
+  }, [loading]);
 
   const filtered = useMemo(() => points.filter(p => filter === "all" || p[3] === filter), [points, filter]);
 
@@ -55,9 +56,9 @@ export default function AdminHeatmap() {
     // @ts-ignore
     heatRef.current = (L as any).heatLayer(heatPoints, {
       radius: 28, blur: 22, maxZoom: 17,
-      gradient: { 0.3: "#1a3c2a", 0.6: "#e8a87c", 1.0: "#c4654a" }
+      gradient: { 0.3: "hsl(var(--primary))", 0.6: "hsl(var(--secondary))", 1.0: "hsl(var(--accent))" }
     }).addTo(mapRef.current);
-  }, [filtered]);
+  }, [filtered, loading]);
 
   return (
     <div className="container py-8 space-y-4">
