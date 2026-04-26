@@ -1,6 +1,5 @@
-// Sync cultural facilities from Valencia open data portal.
+// Sync cultural facilities from Valencia open data (Geoportal infociudad GeoJSON).
 // Public dataset, no API key required.
-// Endpoint: valencia.opendatasoft.com — equipments dataset.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
 const corsHeaders = {
@@ -19,35 +18,37 @@ type FacilityType =
   | "archive"
   | "other";
 
-interface OpenDataRecord {
-  recordid?: string;
-  fields?: Record<string, unknown>;
-  geometry?: { coordinates?: [number, number] };
-}
-
 const DATASET_URL =
-  "https://valencia.opendatasoft.com/api/records/1.0/search/" +
-  "?dataset=equipamients-municipals-equipamientos-municipales" +
-  "&q=&rows=1000";
+  "https://geoportal.valencia.es/apps/OpenData/SociedadBienestar/v_infociudad.json";
 
-function classify(name: string, category: string): FacilityType {
-  const t = `${name} ${category}`.toLowerCase();
-  if (/(museo|museu)/.test(t)) return "museum";
-  if (/(biblioteca|hemeroteca)/.test(t)) return "library";
-  if (/(teatro|teatre)/.test(t)) return "theater";
-  if (/(auditorio|auditori|palau de la m)/.test(t)) return "auditorium";
-  if (/(archivo|arxiu)/.test(t)) return "archive";
-  if (/(sala de exposici|sala expo|exposici)/.test(t)) return "exhibition_hall";
-  if (/(cultural|centre cultural|casa de cultura|centro cultural|ateneo)/.test(t))
+// Cultural class IDs from Valencia open data:
+// 1, 5, 50 = libraries; 10 = museums; 4 = theatres; 22 = cultural centres
+const CULTURAL_CLASS_TYPE: Record<string, FacilityType> = {
+  "1": "library",
+  "5": "library",
+  "50": "library",
+  "10": "museum",
+  "4": "theater",
+  "22": "cultural_center",
+};
+
+function classifyByName(name: string): FacilityType | null {
+  const t = name.toLowerCase();
+  if (/\b(museo|museu)\b/.test(t)) return "museum";
+  if (/\b(biblioteca|hemeroteca)\b/.test(t)) return "library";
+  if (/\b(teatre|teatro|teatral)\b/.test(t)) return "theater";
+  if (/\b(auditori|auditorio|palau de la m)\b/.test(t)) return "auditorium";
+  if (/\b(archivo|arxiu)\b/.test(t)) return "archive";
+  if (/(sala (de )?exposici|sala expo)/.test(t)) return "exhibition_hall";
+  if (/(centro cultural|centre cultural|casa de cultura|ateneo|ateneu)/.test(t))
     return "cultural_center";
-  return "other";
+  return null;
 }
 
-function isCultural(category: string, name: string): boolean {
-  const t = `${category} ${name}`.toLowerCase();
-  return /(cultura|cultural|museo|museu|biblioteca|teatre|teatro|auditori|exposici|archivo|arxiu|hemeroteca|ateneo|cinema)/.test(
-    t
-  );
+interface Feature {
+  type: string;
+  geometry?: { type: string; coordinates?: [number, number] };
+  properties?: Record<string, unknown>;
 }
 
 Deno.serve(async (req) => {
@@ -60,69 +61,63 @@ Deno.serve(async (req) => {
   try {
     console.log("[sync-facilities] Fetching dataset...");
     const resp = await fetch(DATASET_URL);
-    if (!resp.ok) {
-      throw new Error(`Open data fetch failed: ${resp.status}`);
-    }
+    if (!resp.ok) throw new Error(`Open data fetch failed: ${resp.status}`);
     const json = await resp.json();
-    const records: OpenDataRecord[] = json.records ?? [];
-    console.log(`[sync-facilities] Got ${records.length} records`);
+    const features: Feature[] = json.features ?? [];
+    console.log(`[sync-facilities] Got ${features.length} features`);
 
     const rows: Array<Record<string, unknown>> = [];
-    for (const r of records) {
-      const f = r.fields ?? {};
-      const name =
-        (f.nombre as string) ||
-        (f.nom as string) ||
-        (f.equipamiento as string) ||
-        (f.equipament as string) ||
-        "";
-      const category =
-        (f.categoria as string) ||
-        (f.tipologia as string) ||
-        (f.tipo as string) ||
-        "";
-      if (!name || !isCultural(category, name)) continue;
+    const seen = new Set<string>();
 
-      const geo = r.geometry?.coordinates;
-      const lat =
-        (typeof f.latitud === "number" && f.latitud) ||
-        (typeof f.lat === "number" && f.lat) ||
-        (geo && geo[1]) ||
-        null;
-      const lng =
-        (typeof f.longitud === "number" && f.longitud) ||
-        (typeof f.lon === "number" && f.lon) ||
-        (geo && geo[0]) ||
-        null;
-      if (!lat || !lng) continue;
+    for (const f of features) {
+      const p = f.properties ?? {};
+      const name = String(p.equipamien ?? "").trim();
+      if (!name) continue;
 
-      const type = classify(name, category);
+      const idclase = p.idclase != null ? String(p.idclase) : "";
+      let type: FacilityType | null = CULTURAL_CLASS_TYPE[idclase] ?? null;
+      if (!type) type = classifyByName(name);
+      if (!type) continue;
 
-      // Heuristic comfort flags from name/category
-      const t = `${name} ${category}`.toLowerCase();
+      const coords = f.geometry?.coordinates;
+      if (!coords || coords.length < 2) continue;
+      const [lng, lat] = coords;
+      if (typeof lat !== "number" || typeof lng !== "number") continue;
+      // Sanity: must be within Valencia bbox
+      if (lat < 39.3 || lat > 39.6 || lng < -0.5 || lng > -0.25) continue;
+
+      const externalId = String(p.identifica ?? p.objectid ?? `${name}-${lat}-${lng}`);
+      if (seen.has(externalId)) continue;
+      seen.add(externalId);
+
+      const t = name.toLowerCase();
+      const phone = p.telefono ? String(p.telefono) : null;
+
       rows.push({
-        external_id: r.recordid ?? `${name}-${lat}-${lng}`,
-        name,
+        external_id: externalId,
+        name: name.replace(/INFOCIUDAD\s*-\s*/i, "").trim(),
         facility_type: type,
-        description: (f.descripcion as string) ?? null,
-        address: (f.direccion as string) ?? (f.adreca as string) ?? null,
-        district: (f.distrito as string) ?? (f.distrito_nombre as string) ?? null,
-        neighborhood: (f.barrio as string) ?? (f.barri as string) ?? null,
+        description: null,
+        address: p.numportal ? `Nº ${p.numportal}` : null,
+        district: null,
+        neighborhood: null,
         latitude: lat,
         longitude: lng,
-        phone: (f.telefono as string) ?? null,
-        website: (f.web as string) ?? (f.url as string) ?? null,
-        email: (f.email as string) ?? null,
-        has_accessibility: /accesib/.test(t),
-        has_family_zone: type === "library" || /infantil|familia|niños|xiquet/.test(t),
+        phone,
+        website: null,
+        email: null,
+        // Heuristic comfort flags
+        has_accessibility: type === "museum" || type === "library" || type === "theater",
+        has_family_zone:
+          type === "library" || /infantil|familia|niños|xiquet|juventud|jove/.test(t),
         has_lockers: type === "museum" || type === "library",
         is_quiet: type === "library" || type === "archive",
         has_climate_control: type === "museum" || type === "library" || type === "theater",
-        source: "valencia.opendatasoft.com",
+        source: "geoportal.valencia.es",
       });
     }
 
-    console.log(`[sync-facilities] Inserting ${rows.length} cultural facilities`);
+    console.log(`[sync-facilities] Filtered ${rows.length} cultural facilities`);
 
     if (rows.length === 0) {
       return new Response(
@@ -131,10 +126,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Upsert in batches of 100
     let inserted = 0;
-    for (let i = 0; i < rows.length; i += 100) {
-      const batch = rows.slice(i, i + 100);
+    for (let i = 0; i < rows.length; i += 200) {
+      const batch = rows.slice(i, i + 200);
       const { error } = await supabase
         .from("cultural_facilities")
         .upsert(batch, { onConflict: "external_id" });
@@ -146,7 +140,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ ok: true, total: records.length, inserted }),
+      JSON.stringify({ ok: true, total: features.length, inserted }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
