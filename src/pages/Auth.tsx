@@ -162,6 +162,31 @@ export default function Auth() {
                 {mode === "signup" ? "Crear cuenta" : "Entrar"}
               </Button>
             </form>
+
+            {mode === "signin" && (
+              <div className="mt-6 rounded-xl border border-dashed border-accent/40 bg-accent-soft/40 p-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-accent">Cuentas demo</p>
+                <div className="space-y-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => { setEmail("ciudadano@demo.com"); setPassword("demo1234"); }}
+                    className="flex w-full items-center justify-between rounded-lg bg-background/60 px-3 py-2 text-left hover:bg-background"
+                  >
+                    <span><strong>Ciudadano:</strong> ciudadano@demo.com</span>
+                    <span className="text-muted-foreground">demo1234</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEmail("admin@demo.com"); setPassword("demo1234"); }}
+                    className="flex w-full items-center justify-between rounded-lg bg-background/60 px-3 py-2 text-left hover:bg-background"
+                  >
+                    <span><strong>Admin:</strong> admin@demo.com</span>
+                    <span className="text-muted-foreground">demo1234</span>
+                  </button>
+                </div>
+                <p className="mt-2 text-[10px] text-muted-foreground">Haz clic para autocompletar y pulsa Entrar.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
