@@ -53,10 +53,12 @@ export default function AdminHeatmap() {
     if (!mapRef.current) return;
     if (heatRef.current) { mapRef.current.removeLayer(heatRef.current); }
     const heatPoints = filtered.map(p => [p[0], p[1], p[2]]);
+    const styles = getComputedStyle(document.documentElement);
+    const hsl = (name: string) => `hsl(${styles.getPropertyValue(name).trim()})`;
     // @ts-ignore
     heatRef.current = (L as any).heatLayer(heatPoints, {
       radius: 28, blur: 22, maxZoom: 17,
-      gradient: { 0.3: "hsl(var(--primary))", 0.6: "hsl(var(--secondary))", 1.0: "hsl(var(--accent))" }
+      gradient: { 0.3: hsl("--primary"), 0.6: hsl("--secondary"), 1.0: hsl("--accent") }
     }).addTo(mapRef.current);
   }, [filtered, loading]);
 
