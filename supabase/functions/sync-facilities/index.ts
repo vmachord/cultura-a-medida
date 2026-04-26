@@ -60,8 +60,13 @@ Deno.serve(async (req) => {
 
   try {
     console.log("[sync-facilities] Fetching dataset...");
-    const resp = await fetch(DATASET_URL);
-    if (!resp.ok) throw new Error(`Open data fetch failed: ${resp.status}`);
+    const resp = await fetch(DATASET_URL, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; CulturaAMedida/1.0; +https://lovable.app)",
+        "Accept": "application/json,*/*",
+      },
+    });
+    if (!resp.ok) throw new Error(`Open data fetch failed: ${resp.status} ${resp.statusText}`);
     const json = await resp.json();
     const features: Feature[] = json.features ?? [];
     console.log(`[sync-facilities] Got ${features.length} features`);
