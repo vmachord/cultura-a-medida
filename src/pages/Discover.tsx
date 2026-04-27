@@ -106,12 +106,20 @@ export default function Discover() {
       {/* Sidebar */}
       <div className="flex flex-col overflow-hidden border-r border-border bg-card">
         <div className="space-y-3 border-b border-border p-4">
+          <div className="space-y-1">
+            <h1 className="font-display text-2xl font-semibold leading-tight tracking-tight">
+              La cultura de Valencia, a tu medida
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Encuentra museos, bibliotecas y zonas culturales cerca de ti, según tus necesidades y el momento del día.
+            </p>
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar museo, biblioteca…"
+              placeholder="¿Qué cultura buscas hoy?"
               className="pl-9"
             />
           </div>
