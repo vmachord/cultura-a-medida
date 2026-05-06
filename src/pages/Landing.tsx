@@ -124,7 +124,7 @@ export default function Landing() {
 
       <footer className="container border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>
-          Cultura a Medida (CAM) · Retos 5 + 6 · Ámbito: <strong>València</strong> · Datos:{" "}
+          Cultura a Medida (CAM) · Ámbito: <strong>València</strong> · Datos:{" "}
           <a href="https://opendata.vlci.valencia.es" target="_blank" rel="noopener noreferrer" className="underline">
             opendata.vlci.valencia.es
           </a>
