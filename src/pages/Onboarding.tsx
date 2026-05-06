@@ -178,18 +178,31 @@ export default function Onboarding() {
 
         {/* Nav */}
         <div className="mt-10 flex items-center justify-between">
-          <Button variant="ghost" onClick={() => setStep(step - 1)} disabled={step === 0}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Atrás
-          </Button>
+          {step === 0 && isEditing ? (
+            <Button variant="ghost" onClick={() => navigate("/app/profile")}>
+              Cancelar
+            </Button>
+          ) : (
+            <Button variant="ghost" onClick={() => setStep(step - 1)} disabled={step === 0}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Atrás
+            </Button>
+          )}
           {step < 2 ? (
             <Button onClick={() => setStep(step + 1)} disabled={!canNext}>
               Siguiente <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={handleFinish} disabled={saving || !selectedProfile}>
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? "Guardar cambios" : "Empezar a descubrir"}
-            </Button>
+            <div className="flex items-center gap-2">
+              {isEditing && (
+                <Button variant="outline" onClick={() => navigate("/app/profile")}>
+                  Cancelar
+                </Button>
+              )}
+              <Button onClick={handleFinish} disabled={saving || !selectedProfile}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEditing ? "Guardar cambios" : "Empezar a descubrir"}
+              </Button>
+            </div>
           )}
         </div>
       </div>
