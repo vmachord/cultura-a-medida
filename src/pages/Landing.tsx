@@ -57,12 +57,12 @@ export default function Landing() {
           <div className="flex flex-wrap gap-3 pt-2">
             <Button asChild size="lg" className="rounded-full">
               <Link to="/auth?mode=signup&role=citizen">
-                <Compass className="mr-2 h-4 w-4" /> Soy ciudadano
+                <Compass className="mr-2 h-4 w-4" /> Explorar cultura
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full border-primary/20">
               <Link to="/auth?mode=signup&role=admin">
-                <Building2 className="mr-2 h-4 w-4" /> Soy administración
+                <Building2 className="mr-2 h-4 w-4" /> Planificar cultura
               </Link>
             </Button>
           </div>
@@ -92,7 +92,7 @@ export default function Landing() {
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent">
             <Compass className="h-6 w-6" />
           </div>
-          <h2 className="font-display text-2xl font-semibold">Para ciudadanos</h2>
+          <h2 className="font-display text-2xl font-semibold">Explorar cultura</h2>
           <p className="mt-2 text-muted-foreground">
             Descubre equipamientos culturales adaptados a tu perfil — familia, investigador,
             turista o local — con filtros de confort reales: accesibilidad, silencio, lockers, zonas
@@ -109,7 +109,7 @@ export default function Landing() {
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
             <Building2 className="h-6 w-6" />
           </div>
-          <h2 className="font-display text-2xl font-semibold">Para administraciones</h2>
+          <h2 className="font-display text-2xl font-semibold">Planificar cultura</h2>
           <p className="mt-2 text-primary-foreground/75">
             Detecta dónde la oferta cultural no llega. Ve los patrones de demanda de la ciudadanía
             y obtén sugerencias justificadas sobre qué tipo de equipamiento crear y dónde ubicarlo.
