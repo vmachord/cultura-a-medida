@@ -81,7 +81,9 @@ export default function Onboarding() {
             <div>
               <h1 className="font-display text-3xl font-semibold">¿Cómo vives la cultura?</h1>
               <p className="mt-2 text-muted-foreground">
-                Esto nos ayuda a recomendarte equipamientos que encajen contigo. Podrás cambiarlo cuando quieras.
+                {isEditing
+                  ? "Esta es tu selección actual. Puedes cambiarla cuando quieras."
+                  : "Esto nos ayuda a recomendarte equipamientos que encajen contigo. Podrás cambiarlo cuando quieras."}
               </p>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
