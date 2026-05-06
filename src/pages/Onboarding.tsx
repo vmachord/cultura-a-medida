@@ -157,6 +157,7 @@ export default function Onboarding() {
             <div className="grid gap-2 md:grid-cols-2">
               {COMFORT_PRIORITY_OPTIONS.map((c) => {
                 const active = priorities.includes(c.id);
+                const Icon = PRIORITY_ICONS[c.id];
                 return (
                   <button
                     key={c.id}
@@ -166,7 +167,7 @@ export default function Onboarding() {
                       active ? "border-accent bg-accent-soft" : "border-border bg-card hover:border-muted-foreground/30"
                     )}
                   >
-                    <span className="text-2xl">{c.icon}</span>
+                    <Icon className={cn("h-5 w-5", active ? "text-accent" : "text-muted-foreground")} strokeWidth={1.75} />
                     <span className="font-medium">{c.label}</span>
                   </button>
                 );
