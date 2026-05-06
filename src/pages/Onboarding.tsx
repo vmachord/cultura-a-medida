@@ -21,12 +21,15 @@ const PROFILE_ICONS: Record<CulturalProfile, any> = {
 const PROFILES: CulturalProfile[] = ["family", "researcher", "tourist", "local_recurrent"];
 
 export default function Onboarding() {
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const isEditing = !!profile?.onboarding_completed;
   const [step, setStep] = useState(0);
-  const [selectedProfile, setSelectedProfile] = useState<CulturalProfile | null>(null);
-  const [interests, setInterests] = useState<string[]>([]);
-  const [priorities, setPriorities] = useState<string[]>([]);
+  const [selectedProfile, setSelectedProfile] = useState<CulturalProfile | null>(
+    profile && profile.cultural_profile !== "undefined" ? profile.cultural_profile : null
+  );
+  const [interests, setInterests] = useState<string[]>(profile?.interests ?? []);
+  const [priorities, setPriorities] = useState<string[]>(profile?.comfort_priorities ?? []);
   const [saving, setSaving] = useState(false);
 
   const toggle = (arr: string[], setArr: (v: string[]) => void, id: string) => {
