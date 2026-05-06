@@ -45,7 +45,7 @@ export default function Landing() {
       <section className="container grid gap-12 py-12 md:grid-cols-2 md:items-center md:py-20">
         <div className="space-y-6 animate-fade-in">
           <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
-            <Sparkles className="h-3 w-3" /> Cátedra Espacios · Hackathon
+            <Sparkles className="h-3 w-3" /> Cátedra Espacios
           </span>
           <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight text-balance md:text-6xl">
             La cultura de València, <span className="text-accent">a tu medida</span>.
@@ -124,7 +124,7 @@ export default function Landing() {
 
       <footer className="container border-t border-border py-8 text-center text-sm text-muted-foreground">
         <p>
-          Cultura a Medida (CAM) · Retos 5 + 6 · Ámbito: <strong>València</strong> · Datos:{" "}
+          Cultura a Medida (CAM) · Ámbito: <strong>València</strong> · Datos:{" "}
           <a href="https://opendata.vlci.valencia.es" target="_blank" rel="noopener noreferrer" className="underline">
             opendata.vlci.valencia.es
           </a>
