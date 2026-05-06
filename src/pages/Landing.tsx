@@ -109,7 +109,7 @@ export default function Landing() {
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
             <Building2 className="h-6 w-6" />
           </div>
-          <h2 className="font-display text-2xl font-semibold">Para administraciones</h2>
+          <h2 className="font-display text-2xl font-semibold">Planificar cultura</h2>
           <p className="mt-2 text-primary-foreground/75">
             Detecta dónde la oferta cultural no llega. Ve los patrones de demanda de la ciudadanía
             y obtén sugerencias justificadas sobre qué tipo de equipamiento crear y dónde ubicarlo.
