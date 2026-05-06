@@ -45,7 +45,7 @@ export default function Landing() {
       <section className="container grid gap-12 py-12 md:grid-cols-2 md:items-center md:py-20">
         <div className="space-y-6 animate-fade-in">
           <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
-            <Sparkles className="h-3 w-3" /> Cátedra Espacios · Hackathon
+            <Sparkles className="h-3 w-3" /> Cátedra Espacios
           </span>
           <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight text-balance md:text-6xl">
             La cultura de València, <span className="text-accent">a tu medida</span>.
