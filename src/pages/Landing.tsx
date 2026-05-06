@@ -92,7 +92,7 @@ export default function Landing() {
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent">
             <Compass className="h-6 w-6" />
           </div>
-          <h2 className="font-display text-2xl font-semibold">Para ciudadanos</h2>
+          <h2 className="font-display text-2xl font-semibold">Explorar cultura</h2>
           <p className="mt-2 text-muted-foreground">
             Descubre equipamientos culturales adaptados a tu perfil — familia, investigador,
             turista o local — con filtros de confort reales: accesibilidad, silencio, lockers, zonas
