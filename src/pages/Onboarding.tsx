@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { CULTURAL_PROFILE_LABELS, CULTURAL_PROFILE_DESCRIPTIONS, INTEREST_OPTIONS, COMFORT_PRIORITY_OPTIONS } from "@/lib/types";
 import type { CulturalProfile } from "@/lib/types";
-import { ArrowRight, ArrowLeft, Loader2, Check, Users, BookOpen, Camera, Heart } from "lucide-react";
+import { ArrowRight, ArrowLeft, Loader2, Check, Users, BookOpen, Camera, Heart, Accessibility, Baby, Backpack, VolumeX, Snowflake } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PROFILE_ICONS: Record<CulturalProfile, any> = {
@@ -16,6 +16,14 @@ const PROFILE_ICONS: Record<CulturalProfile, any> = {
   tourist: Camera,
   local_recurrent: Heart,
   undefined: Users,
+};
+
+const PRIORITY_ICONS: Record<string, any> = {
+  accessibility: Accessibility,
+  family_zone: Baby,
+  lockers: Backpack,
+  quiet: VolumeX,
+  climate: Snowflake,
 };
 
 const PROFILES: CulturalProfile[] = ["family", "researcher", "tourist", "local_recurrent"];
