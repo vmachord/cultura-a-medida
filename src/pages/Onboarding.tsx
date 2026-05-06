@@ -179,7 +179,7 @@ export default function Onboarding() {
           ) : (
             <Button onClick={handleFinish} disabled={saving || !selectedProfile}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Empezar a descubrir
+              {isEditing ? "Guardar cambios" : "Empezar a descubrir"}
             </Button>
           )}
         </div>
