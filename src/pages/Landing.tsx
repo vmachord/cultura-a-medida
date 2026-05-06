@@ -57,12 +57,12 @@ export default function Landing() {
           <div className="flex flex-wrap gap-3 pt-2">
             <Button asChild size="lg" className="rounded-full">
               <Link to="/auth?mode=signup&role=citizen">
-                <Compass className="mr-2 h-4 w-4" /> Soy ciudadano
+                <Compass className="mr-2 h-4 w-4" /> Explorar cultura
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full border-primary/20">
               <Link to="/auth?mode=signup&role=admin">
-                <Building2 className="mr-2 h-4 w-4" /> Soy administración
+                <Building2 className="mr-2 h-4 w-4" /> Planificar cultura
               </Link>
             </Button>
           </div>
