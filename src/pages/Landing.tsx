@@ -51,20 +51,21 @@ export default function Landing() {
             La cultura de València, <span className="text-accent">a tu medida</span>.
           </h1>
           <p className="max-w-lg text-lg text-muted-foreground">
-            Un sistema inteligente que recomienda equipamientos culturales según tu perfil
-            y, a la vez, ayuda a las administraciones a planificar dónde crear los próximos.
+            Descubre equipamientos culturales adaptados a tu perfil — familia, investigador,
+            turista o local — con filtros de confort reales y recomendaciones inteligentes.
           </p>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button asChild size="lg" className="rounded-full">
+          <div className="flex flex-col gap-3 pt-2">
+            <Button asChild size="lg" className="w-fit rounded-full">
               <Link to="/auth?mode=signup&role=citizen">
                 <Compass className="mr-2 h-4 w-4" /> Explorar cultura
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="rounded-full border-primary/20">
-              <Link to="/auth?mode=signup&role=admin">
-                <Building2 className="mr-2 h-4 w-4" /> Planificar cultura
+            <p className="text-sm text-muted-foreground">
+              ¿Trabajas en una administración?{" "}
+              <Link to="/auth?mode=signup&role=admin" className="text-accent underline hover:no-underline">
+                Planificar cultura
               </Link>
-            </Button>
+            </p>
           </div>
         </div>
 
@@ -86,39 +87,67 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Two paths */}
-      <section className="container grid gap-6 py-16 md:grid-cols-2">
-        <div className="rounded-3xl border border-border bg-card p-8 shadow-soft">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent">
-            <Compass className="h-6 w-6" />
+      {/* Explorar cultura — full width feature */}
+      <section className="container py-16">
+        <div className="rounded-3xl border border-border bg-card p-8 shadow-soft md:p-12">
+          <div className="grid gap-10 md:grid-cols-2 md:items-center">
+            <div>
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                <Compass className="h-6 w-6" />
+              </div>
+              <h2 className="font-display text-3xl font-semibold">Explorar cultura</h2>
+              <p className="mt-3 max-w-md text-muted-foreground">
+                Encuentra el equipamiento cultural perfecto para ti. Filtros de confort reales
+                que importan: accesibilidad, silencio, lockers, zonas infantiles y más.
+              </p>
+              <ul className="mt-6 space-y-3 text-sm">
+                <li className="flex gap-3"><Map className="mt-0.5 h-4 w-4 text-accent" /> Mapa Discovery con isocronas</li>
+                <li className="flex gap-3"><Sparkles className="mt-0.5 h-4 w-4 text-accent" /> Recomendaciones que aprenden de ti</li>
+                <li className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 text-accent" /> Datos reales del Ayuntamiento</li>
+              </ul>
+              <div className="mt-8">
+                <Button asChild className="rounded-full">
+                  <Link to="/auth?mode=signup&role=citizen">
+                    <Compass className="mr-2 h-4 w-4" /> Empezar a explorar
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div className="relative hidden md:block">
+              <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-muted">
+                <img
+                  src={heroImage}
+                  alt="Equipamiento cultural en València"
+                  className="h-full w-full object-cover opacity-80"
+                />
+              </div>
+            </div>
           </div>
-          <h2 className="font-display text-2xl font-semibold">Explorar cultura</h2>
-          <p className="mt-2 text-muted-foreground">
-            Descubre equipamientos culturales adaptados a tu perfil — familia, investigador,
-            turista o local — con filtros de confort reales: accesibilidad, silencio, lockers, zonas
-            infantiles.
-          </p>
-          <ul className="mt-6 space-y-3 text-sm">
-            <li className="flex gap-3"><Map className="mt-0.5 h-4 w-4 text-accent" /> Mapa Discovery con isocronas</li>
-            <li className="flex gap-3"><Sparkles className="mt-0.5 h-4 w-4 text-accent" /> Recomendaciones que aprenden de ti</li>
-            <li className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 text-accent" /> Datos reales del Ayuntamiento</li>
-          </ul>
         </div>
+      </section>
 
-        <div className="rounded-3xl border border-primary/20 bg-gradient-earth p-8 text-primary-foreground shadow-elegant">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
-            <Building2 className="h-6 w-6" />
+      {/* Planificar cultura — compact secondary */}
+      <section className="container py-8">
+        <div className="rounded-2xl border border-primary/20 bg-gradient-earth p-6 text-primary-foreground shadow-elegant md:flex md:items-center md:justify-between md:gap-8 md:p-8">
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+              <Building2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-display text-xl font-semibold">Planificar cultura</h3>
+              <p className="mt-1 max-w-lg text-sm text-primary-foreground/75">
+                Herramientas para administraciones: detecta dónde la oferta no llega,
+                visualiza patrones de demanda y obtén sugerencias de ubicación.
+              </p>
+            </div>
           </div>
-          <h2 className="font-display text-2xl font-semibold">Planificar cultura</h2>
-          <p className="mt-2 text-primary-foreground/75">
-            Detecta dónde la oferta cultural no llega. Ve los patrones de demanda de la ciudadanía
-            y obtén sugerencias justificadas sobre qué tipo de equipamiento crear y dónde ubicarlo.
-          </p>
-          <ul className="mt-6 space-y-3 text-sm text-primary-foreground/85">
-            <li className="flex gap-3"><BarChart3 className="mt-0.5 h-4 w-4 text-accent" /> Mapa de calor de demanda</li>
-            <li className="flex gap-3"><Lightbulb className="mt-0.5 h-4 w-4 text-accent" /> Recomendador de ubicación</li>
-            <li className="flex gap-3"><BarChart3 className="mt-0.5 h-4 w-4 text-accent" /> Patrones por distrito y perfil</li>
-          </ul>
+          <div className="mt-4 flex flex-wrap gap-3 md:mt-0 md:shrink-0">
+            <Button asChild variant="secondary" className="rounded-full bg-accent-foreground text-primary hover:bg-accent-foreground/90">
+              <Link to="/auth?mode=signup&role=admin">
+                <Building2 className="mr-2 h-4 w-4" /> Acceder
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
