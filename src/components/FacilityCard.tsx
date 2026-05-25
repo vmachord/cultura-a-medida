@@ -90,6 +90,7 @@ export function FacilityCard({ facility, reasons, distanceKm, className }: Facil
           </p>
         </div>
       )}
+      </div>
     </Link>
   );
 }
