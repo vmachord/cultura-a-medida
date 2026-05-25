@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
-import { FACILITY_TYPE_ICONS, getFacilityComfortFlags } from "@/lib/facility-helpers";
+import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
 import { MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,15 +16,30 @@ interface FacilityCardProps {
 
 export function FacilityCard({ facility, reasons, distanceKm, className }: FacilityCardProps) {
   const flags = getFacilityComfortFlags(facility);
+  const imageUrl = getFacilityImage(facility);
 
   return (
     <Link
       to={`/app/place/${facility.id}`}
       className={cn(
-        "group block rounded-2xl border border-border bg-card p-5 shadow-soft transition-all hover:shadow-elegant hover:-translate-y-0.5",
+        "group block overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:shadow-elegant hover:-translate-y-0.5",
         className
       )}
     >
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
+        <img
+          src={imageUrl}
+          alt={facility.name}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        {distanceKm != null && (
+          <span className="absolute right-2 top-2 rounded-full bg-background/90 px-2 py-1 text-xs font-medium text-foreground backdrop-blur">
+            {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}
+          </span>
+        )}
+      </div>
+      <div className="p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-xl">
@@ -34,11 +49,6 @@ export function FacilityCard({ facility, reasons, distanceKm, className }: Facil
             {FACILITY_TYPE_LABELS[facility.facility_type]}
           </span>
         </div>
-        {distanceKm != null && (
-          <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-            {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}
-          </span>
-        )}
       </div>
 
       <h3 className="mt-3 font-display text-lg font-semibold leading-snug text-balance group-hover:text-accent">
@@ -80,6 +90,7 @@ export function FacilityCard({ facility, reasons, distanceKm, className }: Facil
           </p>
         </div>
       )}
+      </div>
     </Link>
   );
 }

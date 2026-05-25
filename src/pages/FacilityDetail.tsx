@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Heart, MapPin, Phone, Globe, CheckCircle2, Loader2, Navigation } from "lucide-react";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
-import { FACILITY_TYPE_ICONS, getFacilityComfortFlags } from "@/lib/facility-helpers";
+import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
 import { toast } from "sonner";
 
 export default function FacilityDetail() {
@@ -79,23 +79,29 @@ export default function FacilityDetail() {
         <Link to="/app/discover"><ArrowLeft className="mr-2 h-4 w-4" /> Volver al mapa</Link>
       </Button>
 
-      <div className="rounded-3xl border border-border bg-gradient-warm p-8 text-white shadow-elegant">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+      <div className="overflow-hidden rounded-3xl shadow-elegant">
+        <div className="relative aspect-[21/9] w-full overflow-hidden bg-muted">
+          <img
+            src={getFacilityImage(facility)}
+            alt={facility.name}
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <Button
+            onClick={toggleFavorite}
+            variant="secondary"
+            size="icon"
+            className="absolute right-4 top-4 rounded-full bg-white/20 backdrop-blur hover:bg-white/30"
+          >
+            <Heart className={`h-5 w-5 text-white ${isFavorite ? "fill-white" : ""}`} />
+          </Button>
+          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur">
               <span>{FACILITY_TYPE_ICONS[facility.facility_type]}</span>
               {FACILITY_TYPE_LABELS[facility.facility_type]}
             </span>
             <h1 className="mt-3 font-display text-3xl font-semibold leading-tight md:text-4xl">{facility.name}</h1>
           </div>
-          <Button
-            onClick={toggleFavorite}
-            variant="secondary"
-            size="icon"
-            className="shrink-0 rounded-full bg-white/20 backdrop-blur hover:bg-white/30"
-          >
-            <Heart className={`h-5 w-5 ${isFavorite ? "fill-white" : ""}`} />
-          </Button>
         </div>
       </div>
 
