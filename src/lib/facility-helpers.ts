@@ -29,6 +29,22 @@ export const FACILITY_TYPE_ICONS: Record<FacilityType, string> = {
   other: "✨",
 };
 
+// Curated free-license Unsplash photos per facility type (no copyright issues).
+const FACILITY_TYPE_IMAGES: Record<FacilityType, string> = {
+  museum: "https://images.unsplash.com/photo-1565060169187-5284a3f933e3?w=800&q=80&auto=format&fit=crop",
+  library: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&q=80&auto=format&fit=crop",
+  theater: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80&auto=format&fit=crop",
+  cultural_center: "https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&q=80&auto=format&fit=crop",
+  exhibition_hall: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80&auto=format&fit=crop",
+  auditorium: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&q=80&auto=format&fit=crop",
+  archive: "https://images.unsplash.com/photo-1568667256549-094345857637?w=800&q=80&auto=format&fit=crop",
+  other: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80&auto=format&fit=crop",
+};
+
+export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type">): string {
+  return facility.image_url || FACILITY_TYPE_IMAGES[facility.facility_type] || FACILITY_TYPE_IMAGES.other;
+}
+
 // Haversine distance in kilometres
 export function haversineKm(
   [lat1, lon1]: [number, number],
