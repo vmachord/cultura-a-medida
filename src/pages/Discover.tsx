@@ -256,7 +256,16 @@ export default function Discover() {
         />
         {selectedFacility && (
           <div className="absolute left-4 right-4 top-4 z-[400] max-w-md md:left-auto">
-            <FacilityCard facility={selectedFacility} />
+            <div className="relative">
+              <button
+                onClick={() => setSelectedId(null)}
+                aria-label="Cerrar"
+                className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background/95 text-foreground shadow-elegant ring-1 ring-border backdrop-blur transition hover:bg-background"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <FacilityCard facility={selectedFacility} />
+            </div>
           </div>
         )}
       </div>
