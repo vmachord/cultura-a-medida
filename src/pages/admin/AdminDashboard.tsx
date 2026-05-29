@@ -4,11 +4,22 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Building2, Users, Search, TrendingUp, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import type { FacilityType } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
 import { toast } from "sonner";
 
+type FacilityTypeRow = { facility_type: FacilityType };
+type RecentSearchRow = { searched_type: FacilityType | null; search_query: string | null; district: string | null; created_at: string };
+type DashboardStats = {
+  facilities: number;
+  users: number;
+  searches: number;
+  chartData: { name: string; value: number }[];
+  recentSearches: RecentSearchRow[];
+};
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -23,7 +34,7 @@ export default function AdminDashboard() {
     ]);
 
     const typeCounts: Record<string, number> = {};
-    (typeBreakdown ?? []).forEach((f: any) => { typeCounts[f.facility_type] = (typeCounts[f.facility_type] ?? 0) + 1; });
+    (typeBreakdown as FacilityTypeRow[] | null ?? []).forEach((f) => { typeCounts[f.facility_type] = (typeCounts[f.facility_type] ?? 0) + 1; });
     const chartData = Object.entries(typeCounts).map(([k, v]) => ({ name: FACILITY_TYPE_LABELS[k as keyof typeof FACILITY_TYPE_LABELS] ?? k, value: v }));
 
     setStats({
@@ -61,15 +72,16 @@ export default function AdminDashboard() {
       if (error) throw error;
       toast.success("Equipamientos sincronizados desde el portal de Valencia");
       await load();
-    } catch (e: any) {
-      toast.error("Error al sincronizar", { description: e.message });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "No se pudo sincronizar";
+      toast.error("Error al sincronizar", { description: message });
     } finally {
       setSyncing(false);
     }
   };
 
   const recentSearchItems = useMemo(() => {
-    const all = (stats?.recentSearches ?? []) as any[];
+    const all = stats?.recentSearches ?? [];
     const grouped = new Map<string, { label: string; count: number; kind: string; last: string }>();
 
     for (const s of all) {
