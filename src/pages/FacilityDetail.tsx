@@ -26,7 +26,7 @@ export default function FacilityDetail() {
       supabase.from("interactions").select("interaction_type").eq("user_id", user.id).eq("facility_id", id),
     ]).then(([fRes, iRes]) => {
       setFacility(fRes.data);
-      const types = new Set((iRes.data ?? []).map((x: any) => x.interaction_type));
+      const types = new Set((iRes.data ?? []).map((x) => x.interaction_type));
       setIsFavorite(types.has("favorite") && !types.has("unfavorite"));
       setHasVisited(types.has("visited"));
       setLoading(false);
