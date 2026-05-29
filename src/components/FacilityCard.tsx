@@ -2,23 +2,54 @@ import { Link } from "react-router-dom";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
 import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
-import { MapPin, Phone } from "lucide-react";
+import { Heart, MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 interface FacilityCardProps {
   facility: Facility;
   reasons?: string[];
   distanceKm?: number;
-  isFavorite?: boolean;
-  onFavoriteToggle?: () => void;
   className?: string;
 }
 
 export function FacilityCard({ facility, reasons, distanceKm, className }: FacilityCardProps) {
+  const { user, profile } = useAuth();
   const flags = getFacilityComfortFlags(facility);
   const [imgSrc, setImgSrc] = useState(getFacilityImage(facility));
   const fallback = getFacilityImage({ ...facility, image_url: null } as any);
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("interactions")
+      .select("interaction_type")
+      .eq("user_id", user.id)
+      .eq("facility_id", facility.id)
+      .then(({ data }) => {
+        const types = new Set((data ?? []).map((x: any) => x.interaction_type));
+        setIsFav(types.has("favorite") && !types.has("unfavorite"));
+      });
+  }, [user, facility.id]);
+
+  const toggleFav = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    const next = !isFav;
+    setIsFav(next);
+    await supabase.from("interactions").insert({
+      user_id: user.id,
+      interaction_type: next ? "favorite" : "unfavorite",
+      facility_id: facility.id,
+      user_profile_snapshot: profile?.cultural_profile ?? null,
+    });
+    toast.success(next ? "Añadido a favoritos" : "Quitado de favoritos");
+  };
 
   return (
     <Link
@@ -36,6 +67,13 @@ export function FacilityCard({ facility, reasons, distanceKm, className }: Facil
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
+        <button
+          onClick={toggleFav}
+          aria-label={isFav ? "Quitar de favoritos" : "Añadir a favoritos"}
+          className="absolute left-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-foreground shadow-soft ring-1 ring-border backdrop-blur transition hover:bg-background"
+        >
+          <Heart className={cn("h-4 w-4", isFav && "fill-accent text-accent")} />
+        </button>
         {distanceKm != null && (
           <span className="absolute right-2 top-2 rounded-full bg-background/90 px-2 py-1 text-xs font-medium text-foreground backdrop-blur">
             {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}
