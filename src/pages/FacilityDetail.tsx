@@ -152,7 +152,7 @@ export default function FacilityDetail() {
         </Button>
         <Button asChild variant="outline">
           <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${facility.latitude},${facility.longitude}`}
+            href={`https://www.openstreetmap.org/directions?from=&to=${facility.latitude}%2C${facility.longitude}#map=17/${facility.latitude}/${facility.longitude}`}
             target="_blank" rel="noopener noreferrer"
           >
             <Navigation className="mr-2 h-4 w-4" /> Cómo llegar
