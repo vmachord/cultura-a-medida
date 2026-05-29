@@ -14,6 +14,13 @@ import { cn } from "@/lib/utils";
 
 const TYPES: FacilityType[] = ["museum", "library", "theater", "cultural_center", "exhibition_hall", "auditorium", "archive"];
 const RADIUS_OPTIONS = [10, 20, 30];
+const COMFORT_KEY: Record<string, keyof Facility> = {
+  accessibility: "has_accessibility",
+  family_zone: "has_family_zone",
+  lockers: "has_lockers",
+  quiet: "is_quiet",
+  climate: "has_climate_control",
+};
 
 export default function Discover() {
   const { user, profile } = useAuth();
@@ -68,14 +75,6 @@ export default function Discover() {
   const toggleComfort = (c: string) =>
     setActiveComfort((p) => (p.includes(c) ? p.filter((x) => x !== c) : [...p, c]));
 
-  const comfortKey: Record<string, keyof Facility> = {
-    accessibility: "has_accessibility",
-    family_zone: "has_family_zone",
-    lockers: "has_lockers",
-    quiet: "is_quiet",
-    climate: "has_climate_control",
-  };
-
   // Fetch real ORS isochrone whenever location or walk minutes change
   useEffect(() => {
     if (!userLocation || !walkMinutes) {
@@ -103,7 +102,7 @@ export default function Discover() {
       if (q && !f.name.toLowerCase().includes(q)) return false;
       if (activeTypes.length && !activeTypes.includes(f.facility_type)) return false;
       for (const c of activeComfort) {
-        const k = comfortKey[c];
+        const k = COMFORT_KEY[c];
         if (k && !f[k]) return false;
       }
       if (walkMinutes && userLocation) {
