@@ -17,7 +17,8 @@ interface FacilityCardProps {
 
 export function FacilityCard({ facility, reasons, distanceKm, className }: FacilityCardProps) {
   const flags = getFacilityComfortFlags(facility);
-  const imageUrl = getFacilityImage(facility);
+  const [imgSrc, setImgSrc] = useState(getFacilityImage(facility));
+  const fallback = getFacilityImage({ ...facility, image_url: null } as any);
 
   return (
     <Link
