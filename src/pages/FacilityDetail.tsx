@@ -150,14 +150,32 @@ export default function FacilityDetail() {
           <CheckCircle2 className="mr-2 h-4 w-4" />
           {hasVisited ? "Ya lo has visitado" : "Marcar como visitado"}
         </Button>
-        <Button asChild variant="outline">
-          <a
-            href={`https://www.openstreetmap.org/directions?from=&to=${facility.latitude}%2C${facility.longitude}#map=17/${facility.latitude}/${facility.longitude}`}
-            target="_blank" rel="noopener noreferrer"
-          >
-            <Navigation className="mr-2 h-4 w-4" /> Cómo llegar
-          </a>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              <Navigation className="mr-2 h-4 w-4" /> Cómo llegar
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem asChild>
+              <a href={`https://maps.apple.com/?daddr=${facility.latitude},${facility.longitude}`} target="_blank" rel="noopener noreferrer">Apple Maps</a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href={`https://www.openstreetmap.org/directions?to=${facility.latitude}%2C${facility.longitude}`} target="_blank" rel="noopener noreferrer">OpenStreetMap</a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href={`https://www.google.com/maps/dir/?api=1&destination=${facility.latitude},${facility.longitude}`} target="_blank" rel="noopener noreferrer">Google Maps</a>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                navigator.clipboard.writeText(`${facility.latitude}, ${facility.longitude}`);
+                toast.success("Coordenadas copiadas");
+              }}
+            >
+              Copiar coordenadas
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
