@@ -42,22 +42,67 @@ const FACILITY_NAME_IMAGES: Array<{ match: RegExp; image: string }> = [
   { match: /hortensia herrero/i, image: hortensiaHerreroImage },
 ];
 
-// Curated free-license Unsplash photos per facility type (no copyright issues).
-const FACILITY_TYPE_IMAGES: Record<FacilityType, string> = {
-  museum: "https://images.unsplash.com/photo-1565060169187-5284a3f933e3?w=800&q=80&auto=format&fit=crop",
-  library: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&q=80&auto=format&fit=crop",
-  theater: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80&auto=format&fit=crop",
-  cultural_center: "https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&q=80&auto=format&fit=crop",
-  exhibition_hall: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80&auto=format&fit=crop",
-  auditorium: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&q=80&auto=format&fit=crop",
-  archive: "https://images.unsplash.com/photo-1568667256549-094345857637?w=800&q=80&auto=format&fit=crop",
-  other: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80&auto=format&fit=crop",
+// Curated free-license Unsplash photos per facility type. Multiple variants so
+// different facilities of the same type don't all look identical.
+const FACILITY_TYPE_IMAGES: Record<FacilityType, string[]> = {
+  museum: [
+    "https://images.unsplash.com/photo-1565060169187-5284a3f933e3?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=800&q=80&auto=format&fit=crop",
+  ],
+  library: [
+    "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1568667256549-094345857637?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80&auto=format&fit=crop",
+  ],
+  theater: [
+    "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1514306191717-452ec28c7814?w=800&q=80&auto=format&fit=crop",
+  ],
+  cultural_center: [
+    "https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&q=80&auto=format&fit=crop",
+  ],
+  exhibition_hall: [
+    "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1531058020387-3be344556be6?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=800&q=80&auto=format&fit=crop",
+  ],
+  auditorium: [
+    "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1518972559570-7cc1309f3229?w=800&q=80&auto=format&fit=crop",
+  ],
+  archive: [
+    "https://images.unsplash.com/photo-1568667256549-094345857637?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80&auto=format&fit=crop",
+  ],
+  other: [
+    "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80&auto=format&fit=crop",
+  ],
 };
 
-export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type" | "name">): string {
-  // Local curated images take precedence over remote image_url (DB) so user uploads always show.
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+// Catastro images are real facades but often shared across many facilities
+// housed in the same building. Treat them as low-priority to avoid visible duplicates.
+const isSharedBuildingImage = (url: string | null | undefined) =>
+  !!url && /ovc\.catastro\.meh\.es/i.test(url);
+
+export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type" | "name"> & { id?: string }): string {
   const matchedImage = FACILITY_NAME_IMAGES.find(({ match }) => match.test(facility.name))?.image;
-  return matchedImage || facility.image_url || FACILITY_TYPE_IMAGES[facility.facility_type] || FACILITY_TYPE_IMAGES.other;
+  if (matchedImage) return matchedImage;
+  if (facility.image_url && !isSharedBuildingImage(facility.image_url)) return facility.image_url;
+  const pool = FACILITY_TYPE_IMAGES[facility.facility_type] ?? FACILITY_TYPE_IMAGES.other;
+  const key = (facility as any).id || facility.name || "x";
+  return pool[hashString(key) % pool.length];
 }
 
 // Haversine distance in kilometres
