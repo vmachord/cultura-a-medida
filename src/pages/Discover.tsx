@@ -166,16 +166,30 @@ export default function Discover() {
               className="pl-9"
             />
           </div>
-          <div className="flex items-center justify-between">
-            <Button
-              size="sm"
-              variant={userLocation ? "default" : "outline"}
-              onClick={requestLocation}
-              className="rounded-full"
-            >
-              <MapPin className="mr-1.5 h-3.5 w-3.5" />
-              {userLocation ? "Mi ubicación" : "Activar ubicación"}
-            </Button>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                variant={userLocation ? "default" : "outline"}
+                onClick={requestLocation}
+                className="rounded-full"
+              >
+                <MapPin className="mr-1.5 h-3.5 w-3.5" />
+                {userLocation ? "Desactivar ubicación" : "Activar ubicación"}
+              </Button>
+              {userLocation && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setFlyToUserKey((k) => k + 1)}
+                  className="rounded-full"
+                  aria-label="Centrar mapa en mi ubicación"
+                  title="Centrar mapa en mi ubicación"
+                >
+                  <LocateFixed className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
             <Button
               size="sm"
               variant="ghost"
