@@ -110,7 +110,7 @@ export interface RecommendationResult {
  * - proximity bonus
  */
 export function scoreFacility(input: ScoreInput): RecommendationResult {
-  const { facility, profile, interests, comfortPriorities, visitedIds, favoriteIds, userLocation } = input;
+  const { facility, profile, interests, comfortPriorities, visitedIds, favoriteIds, userLocation, cfScore, contextBonus } = input;
   let score = 0;
   const reasons: string[] = [];
 
@@ -203,6 +203,18 @@ export function scoreFacility(input: ScoreInput): RecommendationResult {
     // bonus inversely proportional to distance, max +15 if within 1km
     score += Math.max(0, 15 - distanceKm * 3);
     if (distanceKm < 1.5) reasons.push("A pocos minutos andando");
+  }
+
+  // Collaborative filtering signal (users like you also liked)
+  if (cfScore && cfScore > 0) {
+    score += cfScore * 20;
+    if (cfScore > 0.4) reasons.push("Popular entre perfiles como el tuyo");
+  }
+
+  // Contextual bonus (weather, hour of day)
+  if (contextBonus) {
+    score += contextBonus.delta;
+    if (contextBonus.reason) reasons.push(contextBonus.reason);
   }
 
   // Baseline
