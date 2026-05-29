@@ -92,7 +92,7 @@ export default function Landing() {
           </div>
           <div className="absolute -bottom-6 -left-6 hidden rounded-2xl bg-card p-4 shadow-warm md:block">
             <p className="text-xs text-muted-foreground">Equipamientos cargados</p>
-            <p className="font-display text-3xl font-semibold text-accent">436</p>
+            <p className="font-display text-3xl font-semibold text-accent">{facilityCount ?? "—"}</p>
             <p className="text-xs">museos, bibliotecas, teatros…</p>
           </div>
         </div>
