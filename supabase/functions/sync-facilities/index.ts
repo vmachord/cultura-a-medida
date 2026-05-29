@@ -75,9 +75,7 @@ Deno.serve(async (req) => {
       const name = String(p.equipamien ?? "").trim();
       if (!name) continue;
 
-      const idclase = p.idclase != null ? String(p.idclase) : "";
-      let type: FacilityType | null = CULTURAL_CLASS_TYPE[idclase] ?? null;
-      if (!type) type = classifyByName(name);
+      const type: FacilityType | null = classifyByName(name);
       if (!type) continue;
 
       const coords = f.geometry?.coordinates;
