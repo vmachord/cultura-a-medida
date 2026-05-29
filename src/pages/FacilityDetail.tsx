@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ArrowLeft, Heart, MapPin, Phone, Globe, CheckCircle2, Loader2, Navigation } from "lucide-react";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
@@ -73,6 +73,12 @@ export default function FacilityDetail() {
   }
 
   const flags = getFacilityComfortFlags(facility);
+  const coordinates = `${facility.latitude.toFixed(6)}, ${facility.longitude.toFixed(6)}`;
+
+  const copyText = async (text: string, message: string) => {
+    await navigator.clipboard.writeText(text);
+    toast.success(message);
+  };
 
   return (
     <div className="container max-w-3xl py-8">
@@ -151,32 +157,44 @@ export default function FacilityDetail() {
           <CheckCircle2 className="mr-2 h-4 w-4" />
           {hasVisited ? "Ya lo has visitado" : "Marcar como visitado"}
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        <Dialog>
+          <DialogTrigger asChild>
             <Button variant="outline">
               <Navigation className="mr-2 h-4 w-4" /> Cómo llegar
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem asChild>
-              <a href={`https://maps.apple.com/?daddr=${facility.latitude},${facility.longitude}`} target="_blank" rel="noopener noreferrer">Apple Maps</a>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a href={`https://www.openstreetmap.org/directions?to=${facility.latitude}%2C${facility.longitude}`} target="_blank" rel="noopener noreferrer">OpenStreetMap</a>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a href={`https://www.google.com/maps/dir/?api=1&destination=${facility.latitude},${facility.longitude}`} target="_blank" rel="noopener noreferrer">Google Maps</a>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                navigator.clipboard.writeText(`${facility.latitude}, ${facility.longitude}`);
-                toast.success("Coordenadas copiadas");
-              }}
-            >
-              Copiar coordenadas
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cómo llegar</DialogTitle>
+              <DialogDescription>
+                Copia la dirección o las coordenadas y pégalas en la app de mapas que uses.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {facility.address && (
+                <div className="rounded-lg border bg-muted/40 p-3 text-sm">
+                  <p className="mb-1 font-medium">Dirección</p>
+                  <p className="text-muted-foreground">{facility.address}</p>
+                </div>
+              )}
+              <div className="rounded-lg border bg-muted/40 p-3 text-sm">
+                <p className="mb-1 font-medium">Coordenadas</p>
+                <p className="font-mono text-muted-foreground">{coordinates}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {facility.address && (
+                  <Button variant="secondary" onClick={() => copyText(facility.address!, "Dirección copiada")}>
+                    Copiar dirección
+                  </Button>
+                )}
+                <Button onClick={() => copyText(coordinates, "Coordenadas copiadas")}>
+                  Copiar coordenadas
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
