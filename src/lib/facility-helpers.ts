@@ -55,8 +55,9 @@ const FACILITY_TYPE_IMAGES: Record<FacilityType, string> = {
 };
 
 export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type" | "name">): string {
+  // Local curated images take precedence over remote image_url (DB) so user uploads always show.
   const matchedImage = FACILITY_NAME_IMAGES.find(({ match }) => match.test(facility.name))?.image;
-  return facility.image_url || matchedImage || FACILITY_TYPE_IMAGES[facility.facility_type] || FACILITY_TYPE_IMAGES.other;
+  return matchedImage || facility.image_url || FACILITY_TYPE_IMAGES[facility.facility_type] || FACILITY_TYPE_IMAGES.other;
 }
 
 // Haversine distance in kilometres
