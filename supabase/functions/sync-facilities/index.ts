@@ -1,5 +1,6 @@
-// Sync cultural facilities from Valencia open data (Geoportal infociudad GeoJSON).
-// Public dataset, no API key required.
+// Sync cultural facilities from Serapeum (Cátedra ESPACIOS, Universitat de València).
+// Public API, no key required. Dataset is curated for cultural facilities only:
+// no hotels / apartments / hostels (unlike the Valencia municipal opendata).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
 const corsHeaders = {
@@ -18,112 +19,186 @@ type FacilityType =
   | "archive"
   | "other";
 
-const DATASET_URL =
-  "https://geoportal.valencia.es/apps/OpenData/SociedadBienestar/v_infociudad.json";
+// Serapeum "clase_2" → our facility_type enum. null = skip (not a visitable facility).
+const CLASE2_MAP: Record<string, FacilityType | null> = {
+  "Museos de artes": "museum",
+  "Museos de ciencias": "museum",
+  "Ecomuseos": "museum",
+  "Museos de sitio": "museum",
+  "Casas museo": "museum",
+  "Bibliotecas públicas": "library",
+  "Bibliotecas especializadas": "library",
+  "Mediatecas": "library",
+  "Teatros públicos": "theater",
+  "Teatros comerciales": "theater",
+  "Teatros independientes": "theater",
+  "Auditorios públicos": "auditorium",
+  "Recintos multiusos": "auditorium",
+  "Salas de conciertos": "auditorium",
+  "Galerías de arte": "exhibition_hall",
+  "Archivos históricos": "archive",
+  "Archivos comunitarios": "archive",
+  "Centros culturales": "cultural_center",
+  "Centros de interpretación": "cultural_center",
+  "Casas de cultura": "cultural_center",
+  "Centros socioculturales": "cultural_center",
+  "Universidades populares": "cultural_center",
+  "Centros juveniles": "cultural_center",
+  "Laboratorios ciudadanos": "cultural_center",
+  "Espacios comunitarios": "cultural_center",
+  "Espacios de articulación": "cultural_center",
+  "Espacios de creación": "cultural_center",
+  "Centros audiovisuales": "cultural_center",
+  "Fábricas de creación": "cultural_center",
+  "Viveros creativos": "cultural_center",
+  "Centros de formación": "cultural_center",
+  "Salas de cine": "cultural_center",
+  "Salas de baile": "cultural_center",
+  // Skipped: "Comercio cultural", "Tecnotecas", "Escuelas no regladas"
+};
 
-// NOTE: We deliberately do NOT trust Valencia's `idclase` codes — class 1/5/50
-// mix libraries with hotels/hostels/post offices, and class 22 mixes cultural
-// centres with cemeteries, sports federations, the airport, etc. Classify
-// strictly by name to keep the dataset purely cultural.
+// Valencia city bbox (excludes Torrent, Mislata, etc.)
+const BBOX = { minLat: 39.43, maxLat: 39.52, minLng: -0.41, maxLng: -0.30 };
 
-function classifyByName(name: string): FacilityType | null {
-  const t = name.toLowerCase();
-  if (/\b(museo|museu|ivam|mubav)\b/.test(t)) return "museum";
-  if (/(filmoteca|cinemateca)/.test(t)) return "cultural_center";
-  if (/(caixaforum|fundaci[oó]n|fundaci[oó]|matadero|conservatori|conservatorio)/.test(t)) return "cultural_center";
-  if (/\b(biblioteca|hemeroteca)\b/.test(t)) return "library";
-  if (/\b(teatre|teatro|teatral)\b/.test(t)) return "theater";
-  if (/\b(auditori|auditorio|palau de la m)\b/.test(t)) return "auditorium";
-  if (/\b(archivo|arxiu)\b/.test(t)) return "archive";
-  if (/(sala (de )?exposici|sala expo)/.test(t)) return "exhibition_hall";
-  if (/(centro cultural|centre cultural|casa de cultura|ateneo|ateneu)/.test(t))
-    return "cultural_center";
-  return null;
+const SERAPEUM = "https://serapeum.uv.es";
+const UA = "CulturaAMedida/1.0 (Lovable; cultural facilities sync)";
+
+interface GeoFeature {
+  id: number;
+  geometry: { coordinates: [number, number] };
 }
 
-interface Feature {
-  type: string;
-  geometry?: { type: string; coordinates?: [number, number] };
-  properties?: Record<string, unknown>;
+interface SerapeumDetail {
+  id: number;
+  nombre: string;
+  alias?: string;
+  clase_1?: string | null;
+  clase_2?: string | null;
+  telefono?: string;
+  web?: string;
+  email?: string;
+  direccion?: string;
+  gestion?: string;
+  fundacion?: number | null;
+  foto_url?: string;
+}
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const r = await fetch(url, { headers: { "User-Agent": UA, "Accept": "application/json" } });
+  if (!r.ok) throw new Error(`${url} → ${r.status}`);
+  return r.json() as Promise<T>;
+}
+
+// Concurrency-limited mapper
+async function mapPool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (true) {
+      const i = next++;
+      if (i >= items.length) return;
+      try { out[i] = await fn(items[i]); }
+      catch (e) { out[i] = undefined as unknown as R; console.warn("item failed", i, (e as Error).message); }
+    }
+  }
+  await Promise.all(Array.from({ length: limit }, worker));
+  return out;
+}
+
+// Heuristic comfort flags from type + name
+function comforts(type: FacilityType, name: string) {
+  const t = name.toLowerCase();
+  return {
+    has_accessibility: ["museum", "library", "theater", "auditorium", "archive"].includes(type),
+    has_family_zone: type === "library" || /infantil|familia|niños|xiquet|juventud|jove/.test(t),
+    has_lockers: type === "museum" || type === "library" || type === "archive",
+    is_quiet: type === "library" || type === "archive",
+    has_climate_control: ["museum", "library", "theater", "auditorium", "archive"].includes(type),
+  };
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
 
   try {
-    console.log("[sync-facilities] Fetching dataset...");
-    const resp = await fetch(DATASET_URL, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; CulturaAMedida/1.0; +https://lovable.app)",
-        "Accept": "application/json,*/*",
-      },
+    console.log("[sync-facilities] Fetching Serapeum locations index…");
+    const all = await fetchJson<GeoFeature[]>(`${SERAPEUM}/api/locations/`);
+    const inBbox = all.filter((f) => {
+      const [lng, lat] = f.geometry.coordinates;
+      return lat >= BBOX.minLat && lat <= BBOX.maxLat && lng >= BBOX.minLng && lng <= BBOX.maxLng;
     });
-    if (!resp.ok) throw new Error(`Open data fetch failed: ${resp.status} ${resp.statusText}`);
-    const json = await resp.json();
-    const features: Feature[] = json.features ?? [];
-    console.log(`[sync-facilities] Got ${features.length} features`);
+    console.log(`[sync-facilities] ${all.length} total, ${inBbox.length} in València bbox`);
+
+    console.log("[sync-facilities] Fetching details (concurrency 20)…");
+    const details = await mapPool(inBbox, 20, async (f) => {
+      const d = await fetchJson<SerapeumDetail>(`${SERAPEUM}/api/locations/${f.id}/`);
+      return { feature: f, detail: d };
+    });
 
     const rows: Array<Record<string, unknown>> = [];
-    const seen = new Set<string>();
-
-    for (const f of features) {
-      const p = f.properties ?? {};
-      const name = String(p.equipamien ?? "").trim();
-      if (!name) continue;
-
-      const type: FacilityType | null = classifyByName(name);
+    for (const item of details) {
+      if (!item || !item.detail) continue;
+      const { feature, detail } = item;
+      const clase2 = detail.clase_2 ?? "";
+      const type = CLASE2_MAP[clase2];
       if (!type) continue;
 
-      const coords = f.geometry?.coordinates;
-      if (!coords || coords.length < 2) continue;
-      const [lng, lat] = coords;
-      if (typeof lat !== "number" || typeof lng !== "number") continue;
-      // Sanity: must be within Valencia bbox
-      if (lat < 39.3 || lat > 39.6 || lng < -0.5 || lng > -0.25) continue;
+      const name = (detail.nombre || "").trim();
+      if (!name) continue;
 
-      const externalId = String(p.identifica ?? p.objectid ?? `${name}-${lat}-${lng}`);
-      if (seen.has(externalId)) continue;
-      seen.add(externalId);
+      // Strip noisy "(València). " / city suffixes from name
+      const cleanName = name
+        .replace(/\s*\((?:Valencia\/València|València|Valencia)\)\.?/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
 
-      const t = name.toLowerCase();
-      const phone = p.telefono ? String(p.telefono) : null;
+      const [lng, lat] = feature.geometry.coordinates;
 
+      // Build a short description from taxonomy + management.
+      const descParts: string[] = [];
+      if (detail.clase_2) descParts.push(detail.clase_2);
+      if (detail.gestion) descParts.push(`Gestión: ${detail.gestion}`);
+      if (detail.fundacion) descParts.push(`Fundado en ${detail.fundacion}`);
+      const description = descParts.length ? descParts.join(" · ") : null;
+
+      // Direccion field sometimes contains garbage (dates). Filter obvious bad values.
+      const rawAddr = (detail.direccion || "").trim();
+      const address = /^\d{4}-\d{2}-\d{2}/.test(rawAddr) || !rawAddr ? null : rawAddr;
+
+      const c = comforts(type, cleanName);
       rows.push({
-        external_id: externalId,
-        name: name.replace(/INFOCIUDAD\s*-\s*/i, "").trim(),
+        external_id: `serapeum-${feature.id}`,
+        name: cleanName,
         facility_type: type,
-        description: null,
-        address: p.numportal ? `Nº ${p.numportal}` : null,
+        description,
+        address,
         district: null,
         neighborhood: null,
         latitude: lat,
         longitude: lng,
-        phone,
-        website: null,
-        email: null,
-        // Heuristic comfort flags
-        has_accessibility: type === "museum" || type === "library" || type === "theater",
-        has_family_zone:
-          type === "library" || /infantil|familia|niños|xiquet|juventud|jove/.test(t),
-        has_lockers: type === "museum" || type === "library",
-        is_quiet: type === "library" || type === "archive",
-        has_climate_control: type === "museum" || type === "library" || type === "theater",
-        source: "geoportal.valencia.es",
+        phone: detail.telefono?.trim() || null,
+        website: detail.web?.trim() || null,
+        email: detail.email?.trim() || null,
+        image_url: detail.foto_url || null,
+        tags: detail.clase_1 ? [detail.clase_1] : [],
+        ...c,
+        source: "serapeum.uv.es",
       });
     }
 
-    console.log(`[sync-facilities] Filtered ${rows.length} cultural facilities`);
+    console.log(`[sync-facilities] Mapped ${rows.length} cultural facilities`);
 
-    if (rows.length === 0) {
-      return new Response(
-        JSON.stringify({ ok: false, message: "No cultural records found" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Wipe previous Serapeum + legacy opendata rows (keep manual entries intact).
+    const { error: delErr } = await supabase
+      .from("cultural_facilities")
+      .delete()
+      .in("source", ["serapeum.uv.es", "geoportal.valencia.es"]);
+    if (delErr) throw delErr;
 
     let inserted = 0;
     for (let i = 0; i < rows.length; i += 200) {
@@ -131,16 +206,13 @@ Deno.serve(async (req) => {
       const { error } = await supabase
         .from("cultural_facilities")
         .upsert(batch, { onConflict: "external_id" });
-      if (error) {
-        console.error("[sync-facilities] upsert error:", error);
-        throw error;
-      }
+      if (error) throw error;
       inserted += batch.length;
     }
 
     return new Response(
-      JSON.stringify({ ok: true, total: features.length, inserted }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ ok: true, total: all.length, in_bbox: inBbox.length, inserted }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
