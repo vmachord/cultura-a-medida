@@ -61,6 +61,25 @@ export default function Discover() {
     climate: "has_climate_control",
   };
 
+  // Fetch real ORS isochrone whenever location or walk minutes change
+  useEffect(() => {
+    if (!userLocation || !walkMinutes) {
+      setIsochrone(null);
+      return;
+    }
+    let cancelled = false;
+    setIsochroneLoading(true);
+    fetchWalkingIsochrone(userLocation[0], userLocation[1], walkMinutes).then((iso) => {
+      if (!cancelled) {
+        setIsochrone(iso);
+        setIsochroneLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userLocation, walkMinutes]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const radiusKm = walkMinutes ? minutesToWalkingKm(walkMinutes) : null;
@@ -72,10 +91,17 @@ export default function Discover() {
         const k = comfortKey[c];
         if (k && !f[k]) return false;
       }
-      if (radiusKm && haversineKm(center, [f.latitude, f.longitude]) > radiusKm) return false;
+      if (walkMinutes && userLocation) {
+        // Prefer real isochrone; fall back to radius approximation
+        if (isochrone) {
+          if (!pointInIsochrone(f.latitude, f.longitude, isochrone)) return false;
+        } else if (radiusKm && haversineKm(center, [f.latitude, f.longitude]) > radiusKm) {
+          return false;
+        }
+      }
       return true;
     });
-  }, [facilities, search, activeTypes, activeComfort, walkMinutes, userLocation]);
+  }, [facilities, search, activeTypes, activeComfort, walkMinutes, userLocation, isochrone]);
 
   // Log search interactions (debounced)
   useEffect(() => {
