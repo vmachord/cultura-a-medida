@@ -18,7 +18,7 @@ export default function AdminDashboard() {
       supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("interactions").select("*", { count: "exact", head: true }).eq("interaction_type", "search"),
       supabase.from("cultural_facilities").select("facility_type"),
-      supabase.from("interactions").select("searched_type, search_query, district").eq("interaction_type", "search").order("created_at", { ascending: false }).limit(50),
+      supabase.from("interactions").select("searched_type, search_query, district, created_at").eq("interaction_type", "search").order("created_at", { ascending: false }).limit(200),
     ]);
 
     const typeCounts: Record<string, number> = {};
