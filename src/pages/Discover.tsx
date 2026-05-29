@@ -28,6 +28,7 @@ export default function Discover() {
   const [showFilters, setShowFilters] = useState(false);
   const [isochrone, setIsochrone] = useState<IsochroneResult | null>(null);
   const [isochroneLoading, setIsochroneLoading] = useState(false);
+  const [flyToUserKey, setFlyToUserKey] = useState(0);
 
   useEffect(() => {
     supabase
