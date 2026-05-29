@@ -5,7 +5,7 @@ import { FacilityMap } from "@/components/FacilityMap";
 import { FacilityCard } from "@/components/FacilityCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, MapPin, X, SlidersHorizontal } from "lucide-react";
+import { Loader2, Search, MapPin, X, SlidersHorizontal, LocateFixed } from "lucide-react";
 import type { Facility, FacilityType } from "@/lib/types";
 import { FACILITY_TYPE_LABELS, COMFORT_PRIORITY_OPTIONS } from "@/lib/types";
 import { FACILITY_TYPE_ICONS, haversineKm, minutesToWalkingKm, VALENCIA_CENTER } from "@/lib/facility-helpers";
