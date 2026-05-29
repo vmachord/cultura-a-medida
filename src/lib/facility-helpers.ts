@@ -88,6 +88,10 @@ interface ScoreInput {
   visitedIds?: Set<string>;
   favoriteIds?: Set<string>;
   userLocation?: [number, number] | null;
+  /** Collaborative filtering score for this facility (0..1) */
+  cfScore?: number;
+  /** Extra context-driven bonus (e.g. weather, hour) */
+  contextBonus?: { delta: number; reason?: string };
 }
 
 export interface RecommendationResult {
