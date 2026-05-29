@@ -1,16 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Building2, Users, Search, TrendingUp, RefreshCw } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import type { FacilityType } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
 import { toast } from "sonner";
 
+type FacilityTypeRow = { facility_type: FacilityType };
+type RecentSearchRow = { searched_type: FacilityType | null; search_query: string | null; district: string | null; created_at: string };
+type DashboardStats = {
+  facilities: number;
+  users: number;
+  searches: number;
+  chartData: { name: string; value: number }[];
+  recentSearches: RecentSearchRow[];
+};
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
     const [{ count: facCount }, { count: userCount }, { count: searchCount }, { data: typeBreakdown }, { data: recentSearches }] = await Promise.all([
@@ -22,7 +34,7 @@ export default function AdminDashboard() {
     ]);
 
     const typeCounts: Record<string, number> = {};
-    (typeBreakdown ?? []).forEach((f: any) => { typeCounts[f.facility_type] = (typeCounts[f.facility_type] ?? 0) + 1; });
+    (typeBreakdown as FacilityTypeRow[] | null ?? []).forEach((f) => { typeCounts[f.facility_type] = (typeCounts[f.facility_type] ?? 0) + 1; });
     const chartData = Object.entries(typeCounts).map(([k, v]) => ({ name: FACILITY_TYPE_LABELS[k as keyof typeof FACILITY_TYPE_LABELS] ?? k, value: v }));
 
     setStats({
@@ -33,9 +45,25 @@ export default function AdminDashboard() {
       recentSearches: recentSearches ?? [],
     });
     setLoading(false);
+    setRefreshing(false);
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-recent-searches")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "interactions", filter: "interaction_type=eq.search" },
+        () => load()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleSync = async () => {
     setSyncing(true);
@@ -44,12 +72,37 @@ export default function AdminDashboard() {
       if (error) throw error;
       toast.success("Equipamientos sincronizados desde el portal de Valencia");
       await load();
-    } catch (e: any) {
-      toast.error("Error al sincronizar", { description: e.message });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "No se pudo sincronizar";
+      toast.error("Error al sincronizar", { description: message });
     } finally {
       setSyncing(false);
     }
   };
+
+  const recentSearchItems = useMemo(() => {
+    const all = stats?.recentSearches ?? [];
+    const grouped = new Map<string, { label: string; count: number; kind: string; last: string }>();
+
+    for (const s of all) {
+      const text = s.search_query?.trim();
+      const label = text || (s.searched_type ? FACILITY_TYPE_LABELS[s.searched_type as keyof typeof FACILITY_TYPE_LABELS] : null);
+      if (!label) continue;
+
+      const key = (text ? "t:" : "f:") + label.toLowerCase();
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.count++;
+        if (s.created_at > existing.last) existing.last = s.created_at;
+      } else {
+        grouped.set(key, { label, count: 1, kind: text ? "texto libre" : "filtro tipología", last: s.created_at });
+      }
+    }
+
+    return Array.from(grouped.values())
+      .sort((a, b) => b.last.localeCompare(a.last))
+      .slice(0, 12);
+  }, [stats?.recentSearches]);
 
   if (loading) return <div className="flex h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-accent" /></div>;
 
@@ -60,10 +113,16 @@ export default function AdminDashboard() {
           <h1 className="font-display text-3xl font-semibold">Resumen</h1>
           <p className="text-muted-foreground">Visión general del sistema cultural de València</p>
         </div>
-        <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
-          {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-          Sincronizar datos abiertos
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => { setRefreshing(true); load(); }} disabled={refreshing} variant="outline" size="sm">
+            {refreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+            Actualizar
+          </Button>
+          <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
+            {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+            Sincronizar datos abiertos
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -87,35 +146,20 @@ export default function AdminDashboard() {
 
       <Card className="p-6">
         <h2 className="mb-3 font-display text-lg font-semibold">Búsquedas recientes</h2>
-        {(() => {
-          const all = stats.recentSearches as any[];
-          const grouped = new Map<string, { label: string; count: number; isText: boolean; last: string }>();
-          for (const s of all) {
-            const text = s.search_query?.trim();
-            const label = text || (s.searched_type ? FACILITY_TYPE_LABELS[s.searched_type as keyof typeof FACILITY_TYPE_LABELS] : null);
-            if (!label) continue;
-            const key = (text ? "t:" : "f:") + label.toLowerCase();
-            const existing = grouped.get(key);
-            if (existing) existing.count++;
-            else grouped.set(key, { label, count: 1, isText: !!text, last: s.created_at });
-          }
-          const items = Array.from(grouped.values()).sort((a, b) => (Number(b.isText) - Number(a.isText)) || (b.count - a.count)).slice(0, 12);
-          if (items.length === 0) {
-            return <p className="text-sm text-muted-foreground">Aún no hay búsquedas registradas. A medida que la ciudadanía use la app, aparecerán aquí.</p>;
-          }
-          return (
-            <div className="space-y-2">
-              {items.map((it, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2 text-sm">
-                  <Search className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="font-medium">{it.label}</span>
-                  <span className="text-xs text-muted-foreground">{it.isText ? "texto libre" : "filtro tipología"}</span>
-                  <span className="ml-auto text-xs text-muted-foreground">×{it.count}</span>
-                </div>
-              ))}
-            </div>
-          );
-        })()}
+        {recentSearchItems.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aún no hay búsquedas registradas. A medida que la ciudadanía use la app, aparecerán aquí.</p>
+        ) : (
+          <div className="space-y-2">
+            {recentSearchItems.map((it, i) => (
+              <div key={`${it.label}-${i}`} className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2 text-sm">
+                <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="font-medium">{it.label}</span>
+                <span className="text-xs text-muted-foreground">{it.kind}</span>
+                <span className="ml-auto text-xs text-muted-foreground">×{it.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );

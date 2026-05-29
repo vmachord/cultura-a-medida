@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { FacilityMap } from "@/components/FacilityMap";
@@ -14,6 +14,13 @@ import { cn } from "@/lib/utils";
 
 const TYPES: FacilityType[] = ["museum", "library", "theater", "cultural_center", "exhibition_hall", "auditorium", "archive"];
 const RADIUS_OPTIONS = [10, 20, 30];
+const COMFORT_KEY: Record<string, keyof Facility> = {
+  accessibility: "has_accessibility",
+  family_zone: "has_family_zone",
+  lockers: "has_lockers",
+  quiet: "is_quiet",
+  climate: "has_climate_control",
+};
 
 export default function Discover() {
   const { user, profile } = useAuth();
@@ -29,6 +36,7 @@ export default function Discover() {
   const [isochrone, setIsochrone] = useState<IsochroneResult | null>(null);
   const [isochroneLoading, setIsochroneLoading] = useState(false);
   const [flyToUserKey, setFlyToUserKey] = useState(0);
+  const previousLoggedTypes = useRef<Set<FacilityType>>(new Set());
 
   useEffect(() => {
     supabase
@@ -67,14 +75,6 @@ export default function Discover() {
   const toggleComfort = (c: string) =>
     setActiveComfort((p) => (p.includes(c) ? p.filter((x) => x !== c) : [...p, c]));
 
-  const comfortKey: Record<string, keyof Facility> = {
-    accessibility: "has_accessibility",
-    family_zone: "has_family_zone",
-    lockers: "has_lockers",
-    quiet: "is_quiet",
-    climate: "has_climate_control",
-  };
-
   // Fetch real ORS isochrone whenever location or walk minutes change
   useEffect(() => {
     if (!userLocation || !walkMinutes) {
@@ -102,7 +102,7 @@ export default function Discover() {
       if (q && !f.name.toLowerCase().includes(q)) return false;
       if (activeTypes.length && !activeTypes.includes(f.facility_type)) return false;
       for (const c of activeComfort) {
-        const k = comfortKey[c];
+        const k = COMFORT_KEY[c];
         if (k && !f[k]) return false;
       }
       if (walkMinutes && userLocation) {
@@ -140,6 +140,31 @@ export default function Discover() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, user?.id]);
+
+  useEffect(() => {
+    const previous = previousLoggedTypes.current;
+    const addedTypes = activeTypes.filter((type) => !previous.has(type));
+    previousLoggedTypes.current = new Set(activeTypes);
+
+    if (!user || addedTypes.length === 0) return;
+
+    const culturalProfile = profile?.cultural_profile ?? null;
+    const lat = userLocation?.[0] ?? null;
+    const lng = userLocation?.[1] ?? null;
+
+    addedTypes.forEach(async (type) => {
+      const { error } = await supabase.from("interactions").insert({
+        user_id: user.id,
+        interaction_type: "search",
+        searched_type: type,
+        user_profile_snapshot: culturalProfile,
+        user_lat: lat,
+        user_lng: lng,
+      });
+      if (error) console.error("[type filter log] insert failed", error);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTypes, user?.id]);
 
   const selectedFacility = facilities.find((f) => f.id === selectedId);
   const radiusKm = walkMinutes ? minutesToWalkingKm(walkMinutes) : null;
