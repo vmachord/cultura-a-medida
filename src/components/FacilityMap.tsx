@@ -130,5 +130,11 @@ export function FacilityMap({
     if (f) mapRef.current.flyTo([f.latitude, f.longitude], 15, { duration: 0.6 });
   }, [selectedId, facilities]);
 
+  // Fly to user when requested
+  useEffect(() => {
+    if (!mapRef.current || !userLocation || !flyToUserKey) return;
+    mapRef.current.flyTo(userLocation, 15, { duration: 0.6 });
+  }, [flyToUserKey, userLocation]);
+
   return <div ref={containerRef} className={className} style={{ height, width: "100%" }} />;
 }
