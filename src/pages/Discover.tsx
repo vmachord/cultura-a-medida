@@ -5,7 +5,7 @@ import { FacilityMap } from "@/components/FacilityMap";
 import { FacilityCard } from "@/components/FacilityCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, MapPin, X, SlidersHorizontal } from "lucide-react";
+import { Loader2, Search, MapPin, X, SlidersHorizontal, LocateFixed } from "lucide-react";
 import type { Facility, FacilityType } from "@/lib/types";
 import { FACILITY_TYPE_LABELS, COMFORT_PRIORITY_OPTIONS } from "@/lib/types";
 import { FACILITY_TYPE_ICONS, haversineKm, minutesToWalkingKm, VALENCIA_CENTER } from "@/lib/facility-helpers";
@@ -28,6 +28,7 @@ export default function Discover() {
   const [showFilters, setShowFilters] = useState(false);
   const [isochrone, setIsochrone] = useState<IsochroneResult | null>(null);
   const [isochroneLoading, setIsochroneLoading] = useState(false);
+  const [flyToUserKey, setFlyToUserKey] = useState(0);
 
   useEffect(() => {
     supabase
@@ -41,10 +42,23 @@ export default function Discover() {
   }, []);
 
   const requestLocation = () => {
+    if (userLocation) {
+      // Toggle off
+      setUserLocation(null);
+      setWalkMinutes(null);
+      setIsochrone(null);
+      return;
+    }
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setUserLocation([pos.coords.latitude, pos.coords.longitude]),
-      () => setUserLocation(VALENCIA_CENTER)
+      (pos) => {
+        setUserLocation([pos.coords.latitude, pos.coords.longitude]);
+        setFlyToUserKey((k) => k + 1);
+      },
+      () => {
+        setUserLocation(VALENCIA_CENTER);
+        setFlyToUserKey((k) => k + 1);
+      }
     );
   };
 
@@ -152,16 +166,30 @@ export default function Discover() {
               className="pl-9"
             />
           </div>
-          <div className="flex items-center justify-between">
-            <Button
-              size="sm"
-              variant={userLocation ? "default" : "outline"}
-              onClick={requestLocation}
-              className="rounded-full"
-            >
-              <MapPin className="mr-1.5 h-3.5 w-3.5" />
-              {userLocation ? "Mi ubicación" : "Activar ubicación"}
-            </Button>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                variant={userLocation ? "default" : "outline"}
+                onClick={requestLocation}
+                className="rounded-full"
+              >
+                <MapPin className="mr-1.5 h-3.5 w-3.5" />
+                {userLocation ? "Desactivar ubicación" : "Activar ubicación"}
+              </Button>
+              {userLocation && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setFlyToUserKey((k) => k + 1)}
+                  className="rounded-full"
+                  aria-label="Centrar mapa en mi ubicación"
+                  title="Centrar mapa en mi ubicación"
+                >
+                  <LocateFixed className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
             <Button
               size="sm"
               variant="ghost"
@@ -291,6 +319,7 @@ export default function Discover() {
           userLocation={userLocation}
           radiusKm={radiusKm}
           isochronePolygons={isochrone?.polygons ?? null}
+          flyToUserKey={flyToUserKey}
         />
         {selectedFacility && (
           <div className="absolute left-4 right-4 top-4 z-[400] max-w-md md:left-auto">

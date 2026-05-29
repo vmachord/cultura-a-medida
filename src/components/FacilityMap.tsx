@@ -12,6 +12,7 @@ interface FacilityMapProps {
   radiusKm?: number | null;
   /** Optional ORS isochrone polygons (rings as [[lon,lat],...]) */
   isochronePolygons?: number[][][] | null;
+  flyToUserKey?: number;
   className?: string;
   height?: string;
 }
@@ -23,6 +24,7 @@ export function FacilityMap({
   userLocation,
   radiusKm,
   isochronePolygons,
+  flyToUserKey,
   className = "",
   height = "100%",
 }: FacilityMapProps) {
@@ -127,6 +129,12 @@ export function FacilityMap({
     const f = facilities.find((x) => x.id === selectedId);
     if (f) mapRef.current.flyTo([f.latitude, f.longitude], 15, { duration: 0.6 });
   }, [selectedId, facilities]);
+
+  // Fly to user when requested
+  useEffect(() => {
+    if (!mapRef.current || !userLocation || !flyToUserKey) return;
+    mapRef.current.flyTo(userLocation, 15, { duration: 0.6 });
+  }, [flyToUserKey, userLocation]);
 
   return <div ref={containerRef} className={className} style={{ height, width: "100%" }} />;
 }
