@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Heart, MapPin, Phone, Globe, CheckCircle2, Loader2, Navigation } from "lucide-react";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
