@@ -42,10 +42,23 @@ export default function Discover() {
   }, []);
 
   const requestLocation = () => {
+    if (userLocation) {
+      // Toggle off
+      setUserLocation(null);
+      setWalkMinutes(null);
+      setIsochrone(null);
+      return;
+    }
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setUserLocation([pos.coords.latitude, pos.coords.longitude]),
-      () => setUserLocation(VALENCIA_CENTER)
+      (pos) => {
+        setUserLocation([pos.coords.latitude, pos.coords.longitude]);
+        setFlyToUserKey((k) => k + 1);
+      },
+      () => {
+        setUserLocation(VALENCIA_CENTER);
+        setFlyToUserKey((k) => k + 1);
+      }
     );
   };
 
