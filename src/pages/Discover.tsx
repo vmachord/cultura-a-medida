@@ -319,6 +319,7 @@ export default function Discover() {
           userLocation={userLocation}
           radiusKm={radiusKm}
           isochronePolygons={isochrone?.polygons ?? null}
+          flyToUserKey={flyToUserKey}
         />
         {selectedFacility && (
           <div className="absolute left-4 right-4 top-4 z-[400] max-w-md md:left-auto">
