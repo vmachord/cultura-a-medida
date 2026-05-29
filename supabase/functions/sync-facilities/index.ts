@@ -21,20 +21,16 @@ type FacilityType =
 const DATASET_URL =
   "https://geoportal.valencia.es/apps/OpenData/SociedadBienestar/v_infociudad.json";
 
-// Cultural class IDs from Valencia open data:
-// 1, 5, 50 = libraries; 10 = museums; 4 = theatres; 22 = cultural centres
-const CULTURAL_CLASS_TYPE: Record<string, FacilityType> = {
-  "1": "library",
-  "5": "library",
-  "50": "library",
-  "10": "museum",
-  "4": "theater",
-  "22": "cultural_center",
-};
+// NOTE: We deliberately do NOT trust Valencia's `idclase` codes — class 1/5/50
+// mix libraries with hotels/hostels/post offices, and class 22 mixes cultural
+// centres with cemeteries, sports federations, the airport, etc. Classify
+// strictly by name to keep the dataset purely cultural.
 
 function classifyByName(name: string): FacilityType | null {
   const t = name.toLowerCase();
-  if (/\b(museo|museu)\b/.test(t)) return "museum";
+  if (/\b(museo|museu|ivam|mubav)\b/.test(t)) return "museum";
+  if (/(filmoteca|cinemateca)/.test(t)) return "cultural_center";
+  if (/(caixaforum|fundaci[oó]n|fundaci[oó]|matadero|conservatori|conservatorio)/.test(t)) return "cultural_center";
   if (/\b(biblioteca|hemeroteca)\b/.test(t)) return "library";
   if (/\b(teatre|teatro|teatral)\b/.test(t)) return "theater";
   if (/\b(auditori|auditorio|palau de la m)\b/.test(t)) return "auditorium";
