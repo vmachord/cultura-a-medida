@@ -9,6 +9,7 @@ import { Loader2, Search, MapPin, X, SlidersHorizontal } from "lucide-react";
 import type { Facility, FacilityType } from "@/lib/types";
 import { FACILITY_TYPE_LABELS, COMFORT_PRIORITY_OPTIONS } from "@/lib/types";
 import { FACILITY_TYPE_ICONS, haversineKm, minutesToWalkingKm, VALENCIA_CENTER } from "@/lib/facility-helpers";
+import { fetchWalkingIsochrone, pointInIsochrone, type IsochroneResult } from "@/lib/isochrone-helpers";
 import { cn } from "@/lib/utils";
 
 const TYPES: FacilityType[] = ["museum", "library", "theater", "cultural_center", "exhibition_hall", "auditorium", "archive"];
