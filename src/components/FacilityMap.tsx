@@ -24,6 +24,7 @@ export function FacilityMap({
   userLocation,
   radiusKm,
   isochronePolygons,
+  flyToUserKey,
   className = "",
   height = "100%",
 }: FacilityMapProps) {
