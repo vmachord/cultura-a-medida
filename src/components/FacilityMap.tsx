@@ -10,6 +10,8 @@ interface FacilityMapProps {
   onSelect?: (f: Facility) => void;
   userLocation?: [number, number] | null;
   radiusKm?: number | null;
+  /** Optional ORS isochrone polygons (rings as [[lon,lat],...]) */
+  isochronePolygons?: number[][][] | null;
   className?: string;
   height?: string;
 }
@@ -20,6 +22,7 @@ export function FacilityMap({
   onSelect,
   userLocation,
   radiusKm,
+  isochronePolygons,
   className = "",
   height = "100%",
 }: FacilityMapProps) {
@@ -27,6 +30,7 @@ export function FacilityMap({
   const mapRef = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
   const radiusLayer = useRef<L.Circle | null>(null);
+  const isochroneLayer = useRef<L.Polygon | null>(null);
   const userMarker = useRef<L.Marker | null>(null);
 
   useEffect(() => {
@@ -81,6 +85,10 @@ export function FacilityMap({
       radiusLayer.current.remove();
       radiusLayer.current = null;
     }
+    if (isochroneLayer.current) {
+      isochroneLayer.current.remove();
+      isochroneLayer.current = null;
+    }
     if (userLocation) {
       const userIcon = L.divIcon({
         className: "",
@@ -89,7 +97,19 @@ export function FacilityMap({
         iconAnchor: [9, 9],
       });
       userMarker.current = L.marker(userLocation, { icon: userIcon }).addTo(mapRef.current);
-      if (radiusKm) {
+
+      // Prefer real isochrone polygon when available; otherwise fall back to radius circle
+      if (isochronePolygons && isochronePolygons.length) {
+        const latlngs = isochronePolygons.map((ring) =>
+          ring.map(([lon, lat]) => [lat, lon] as [number, number])
+        );
+        isochroneLayer.current = L.polygon(latlngs, {
+          color: "hsl(13, 50%, 53%)",
+          weight: 1.5,
+          fillColor: "hsl(13, 50%, 53%)",
+          fillOpacity: 0.08,
+        }).addTo(mapRef.current);
+      } else if (radiusKm) {
         radiusLayer.current = L.circle(userLocation, {
           radius: radiusKm * 1000,
           color: "hsl(13, 50%, 53%)",
@@ -99,7 +119,7 @@ export function FacilityMap({
         }).addTo(mapRef.current);
       }
     }
-  }, [userLocation, radiusKm]);
+  }, [userLocation, radiusKm, isochronePolygons]);
 
   // Fly to selected
   useEffect(() => {

@@ -9,6 +9,7 @@ import { Loader2, Search, MapPin, X, SlidersHorizontal } from "lucide-react";
 import type { Facility, FacilityType } from "@/lib/types";
 import { FACILITY_TYPE_LABELS, COMFORT_PRIORITY_OPTIONS } from "@/lib/types";
 import { FACILITY_TYPE_ICONS, haversineKm, minutesToWalkingKm, VALENCIA_CENTER } from "@/lib/facility-helpers";
+import { fetchWalkingIsochrone, pointInIsochrone, type IsochroneResult } from "@/lib/isochrone-helpers";
 import { cn } from "@/lib/utils";
 
 const TYPES: FacilityType[] = ["museum", "library", "theater", "cultural_center", "exhibition_hall", "auditorium", "archive"];
@@ -25,6 +26,8 @@ export default function Discover() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [isochrone, setIsochrone] = useState<IsochroneResult | null>(null);
+  const [isochroneLoading, setIsochroneLoading] = useState(false);
 
   useEffect(() => {
     supabase
@@ -58,6 +61,25 @@ export default function Discover() {
     climate: "has_climate_control",
   };
 
+  // Fetch real ORS isochrone whenever location or walk minutes change
+  useEffect(() => {
+    if (!userLocation || !walkMinutes) {
+      setIsochrone(null);
+      return;
+    }
+    let cancelled = false;
+    setIsochroneLoading(true);
+    fetchWalkingIsochrone(userLocation[0], userLocation[1], walkMinutes).then((iso) => {
+      if (!cancelled) {
+        setIsochrone(iso);
+        setIsochroneLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userLocation, walkMinutes]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const radiusKm = walkMinutes ? minutesToWalkingKm(walkMinutes) : null;
@@ -69,10 +91,17 @@ export default function Discover() {
         const k = comfortKey[c];
         if (k && !f[k]) return false;
       }
-      if (radiusKm && haversineKm(center, [f.latitude, f.longitude]) > radiusKm) return false;
+      if (walkMinutes && userLocation) {
+        // Prefer real isochrone; fall back to radius approximation
+        if (isochrone) {
+          if (!pointInIsochrone(f.latitude, f.longitude, isochrone)) return false;
+        } else if (radiusKm && haversineKm(center, [f.latitude, f.longitude]) > radiusKm) {
+          return false;
+        }
+      }
       return true;
     });
-  }, [facilities, search, activeTypes, activeComfort, walkMinutes, userLocation]);
+  }, [facilities, search, activeTypes, activeComfort, walkMinutes, userLocation, isochrone]);
 
   // Log search interactions (debounced)
   useEffect(() => {
@@ -187,7 +216,15 @@ export default function Discover() {
 
               {userLocation && (
                 <div>
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">Tiempo andando</p>
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    Tiempo andando
+                    {isochroneLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+                    {isochrone && !isochroneLoading && (
+                      <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                        ruta real
+                      </span>
+                    )}
+                  </p>
                   <div className="flex gap-1.5">
                     {RADIUS_OPTIONS.map((m) => (
                       <button
@@ -253,6 +290,7 @@ export default function Discover() {
           onSelect={(f) => setSelectedId(f.id)}
           userLocation={userLocation}
           radiusKm={radiusKm}
+          isochronePolygons={isochrone?.polygons ?? null}
         />
         {selectedFacility && (
           <div className="absolute left-4 right-4 top-4 z-[400] max-w-md md:left-auto">
