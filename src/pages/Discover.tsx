@@ -117,21 +117,29 @@ export default function Discover() {
     });
   }, [facilities, search, activeTypes, activeComfort, walkMinutes, userLocation, isochrone]);
 
-  // Log search interactions (debounced)
+  // Log search interactions (debounced). Depend only on `search` so the timer
+  // isn't reset by unrelated re-renders (location/profile updates).
   useEffect(() => {
     if (!user || !search.trim()) return;
-    const t = setTimeout(() => {
-      supabase.from("interactions").insert({
-        user_id: user.id,
+    const userId = user.id;
+    const culturalProfile = profile?.cultural_profile ?? null;
+    const lat = userLocation?.[0] ?? null;
+    const lng = userLocation?.[1] ?? null;
+    const query = search.trim();
+    const t = setTimeout(async () => {
+      const { error } = await supabase.from("interactions").insert({
+        user_id: userId,
         interaction_type: "search",
-        search_query: search.trim(),
-        user_profile_snapshot: profile?.cultural_profile ?? null,
-        user_lat: userLocation?.[0] ?? null,
-        user_lng: userLocation?.[1] ?? null,
+        search_query: query,
+        user_profile_snapshot: culturalProfile,
+        user_lat: lat,
+        user_lng: lng,
       });
-    }, 1500);
+      if (error) console.error("[search log] insert failed", error);
+    }, 800);
     return () => clearTimeout(t);
-  }, [search, user, profile, userLocation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, user?.id]);
 
   const selectedFacility = facilities.find((f) => f.id === selectedId);
   const radiusKm = walkMinutes ? minutesToWalkingKm(walkMinutes) : null;
