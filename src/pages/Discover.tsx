@@ -26,6 +26,8 @@ export default function Discover() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [isochrone, setIsochrone] = useState<IsochroneResult | null>(null);
+  const [isochroneLoading, setIsochroneLoading] = useState(false);
 
   useEffect(() => {
     supabase
