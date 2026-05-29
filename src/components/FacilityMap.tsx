@@ -12,6 +12,7 @@ interface FacilityMapProps {
   radiusKm?: number | null;
   /** Optional ORS isochrone polygons (rings as [[lon,lat],...]) */
   isochronePolygons?: number[][][] | null;
+  flyToUserKey?: number;
   className?: string;
   height?: string;
 }
