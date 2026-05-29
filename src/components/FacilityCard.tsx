@@ -4,7 +4,6 @@ import { FACILITY_TYPE_LABELS } from "@/lib/types";
 import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
 import { MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FACILITY_TYPE_LABELS as _ } from "@/lib/types";
 import { useState } from "react";
 
 interface FacilityCardProps {
