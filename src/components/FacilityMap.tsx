@@ -10,6 +10,8 @@ interface FacilityMapProps {
   onSelect?: (f: Facility) => void;
   userLocation?: [number, number] | null;
   radiusKm?: number | null;
+  /** Optional ORS isochrone polygons (rings as [[lon,lat],...]) */
+  isochronePolygons?: number[][][] | null;
   className?: string;
   height?: string;
 }
@@ -20,6 +22,7 @@ export function FacilityMap({
   onSelect,
   userLocation,
   radiusKm,
+  isochronePolygons,
   className = "",
   height = "100%",
 }: FacilityMapProps) {
@@ -27,6 +30,7 @@ export function FacilityMap({
   const mapRef = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
   const radiusLayer = useRef<L.Circle | null>(null);
+  const isochroneLayer = useRef<L.Polygon | null>(null);
   const userMarker = useRef<L.Marker | null>(null);
 
   useEffect(() => {
