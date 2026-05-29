@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Compass, Map, Sparkles, Building2, BarChart3, Lightbulb, ArrowRight, MapPin,
 } from "lucide-react";
@@ -9,6 +11,15 @@ import heroImage from "@/assets/hero-cultura.jpg";
 export default function Landing() {
   const { user, role } = useAuth();
   const myArea = user ? (role === "admin" ? "/admin" : "/app/discover") : "/auth";
+  const [facilityCount, setFacilityCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("cultural_facilities")
+      .select("*", { count: "exact", head: true })
+      .then(({ count }) => setFacilityCount(count ?? 0));
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-gradient-soft">
@@ -81,7 +92,7 @@ export default function Landing() {
           </div>
           <div className="absolute -bottom-6 -left-6 hidden rounded-2xl bg-card p-4 shadow-warm md:block">
             <p className="text-xs text-muted-foreground">Equipamientos cargados</p>
-            <p className="font-display text-3xl font-semibold text-accent">436</p>
+            <p className="font-display text-3xl font-semibold text-accent">{facilityCount ?? "—"}</p>
             <p className="text-xs">museos, bibliotecas, teatros…</p>
           </div>
         </div>
