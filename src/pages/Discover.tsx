@@ -290,6 +290,7 @@ export default function Discover() {
           onSelect={(f) => setSelectedId(f.id)}
           userLocation={userLocation}
           radiusKm={radiusKm}
+          isochronePolygons={isochrone?.polygons ?? null}
         />
         {selectedFacility && (
           <div className="absolute left-4 right-4 top-4 z-[400] max-w-md md:left-auto">
