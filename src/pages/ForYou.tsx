@@ -89,7 +89,7 @@ export default function ForYou() {
             {ctx.temperature !== null && <span className="text-muted-foreground">· {Math.round(ctx.temperature)}°C</span>}
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5">
-            🕒 {ctx.hour}:00 — {ctx.hour < 10 ? "Mañana" : ctx.hour < 19 ? "Día" : "Tarde-noche"}
+            🕒 {new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
           </span>
           {cfMeta && cfMeta.peers > 0 && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5">
