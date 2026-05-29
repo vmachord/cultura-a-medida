@@ -1,3 +1,8 @@
+import nauImage from "@/assets/facilities/nau.png";
+import ivamImage from "@/assets/facilities/ivam.png";
+import ccccImage from "@/assets/facilities/cccc-1.png";
+import hortensiaHerreroImage from "@/assets/facilities/hortensia-herrero.png";
+import bellasArtesImage from "@/assets/facilities/bellas-artes.png";
 import type { Facility, FacilityType, CulturalProfile } from "./types";
 
 // Approximate centre of Valencia (Plaza del Ayuntamiento)
@@ -29,6 +34,14 @@ export const FACILITY_TYPE_ICONS: Record<FacilityType, string> = {
   other: "✨",
 };
 
+const FACILITY_NAME_IMAGES: Array<{ match: RegExp; image: string }> = [
+  { match: /ivam/i, image: ivamImage },
+  { match: /museo de bellas artes/i, image: bellasArtesImage },
+  { match: /universidad de valencia|la nau/i, image: nauImage },
+  { match: /centre del carme|centro del carmen|cccc/i, image: ccccImage },
+  { match: /hortensia herrero/i, image: hortensiaHerreroImage },
+];
+
 // Curated free-license Unsplash photos per facility type (no copyright issues).
 const FACILITY_TYPE_IMAGES: Record<FacilityType, string> = {
   museum: "https://images.unsplash.com/photo-1565060169187-5284a3f933e3?w=800&q=80&auto=format&fit=crop",
@@ -41,8 +54,9 @@ const FACILITY_TYPE_IMAGES: Record<FacilityType, string> = {
   other: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80&auto=format&fit=crop",
 };
 
-export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type">): string {
-  return facility.image_url || FACILITY_TYPE_IMAGES[facility.facility_type] || FACILITY_TYPE_IMAGES.other;
+export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type" | "name">): string {
+  const matchedImage = FACILITY_NAME_IMAGES.find(({ match }) => match.test(facility.name))?.image;
+  return facility.image_url || matchedImage || FACILITY_TYPE_IMAGES[facility.facility_type] || FACILITY_TYPE_IMAGES.other;
 }
 
 // Haversine distance in kilometres
