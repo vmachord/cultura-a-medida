@@ -87,19 +87,35 @@ export default function AdminDashboard() {
 
       <Card className="p-6">
         <h2 className="mb-3 font-display text-lg font-semibold">Búsquedas recientes</h2>
-        {stats.recentSearches.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aún no hay búsquedas registradas. A medida que la ciudadanía use la app, aparecerán aquí.</p>
-        ) : (
-          <div className="space-y-2">
-            {stats.recentSearches.slice(0, 10).map((s: any, i: number) => (
-              <div key={i} className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2 text-sm">
-                <Search className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="font-medium">{s.search_query ?? (s.searched_type ? FACILITY_TYPE_LABELS[s.searched_type as keyof typeof FACILITY_TYPE_LABELS] : "—")}</span>
-                {s.district && <span className="text-xs text-muted-foreground ml-auto">{s.district}</span>}
-              </div>
-            ))}
-          </div>
-        )}
+        {(() => {
+          const all = stats.recentSearches as any[];
+          const grouped = new Map<string, { label: string; count: number; isText: boolean; last: string }>();
+          for (const s of all) {
+            const text = s.search_query?.trim();
+            const label = text || (s.searched_type ? FACILITY_TYPE_LABELS[s.searched_type as keyof typeof FACILITY_TYPE_LABELS] : null);
+            if (!label) continue;
+            const key = (text ? "t:" : "f:") + label.toLowerCase();
+            const existing = grouped.get(key);
+            if (existing) existing.count++;
+            else grouped.set(key, { label, count: 1, isText: !!text, last: s.created_at });
+          }
+          const items = Array.from(grouped.values()).sort((a, b) => (Number(b.isText) - Number(a.isText)) || (b.count - a.count)).slice(0, 12);
+          if (items.length === 0) {
+            return <p className="text-sm text-muted-foreground">Aún no hay búsquedas registradas. A medida que la ciudadanía use la app, aparecerán aquí.</p>;
+          }
+          return (
+            <div className="space-y-2">
+              {items.map((it, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2 text-sm">
+                  <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="font-medium">{it.label}</span>
+                  <span className="text-xs text-muted-foreground">{it.isText ? "texto libre" : "filtro tipología"}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">×{it.count}</span>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </Card>
     </div>
   );
