@@ -42,22 +42,63 @@ const FACILITY_NAME_IMAGES: Array<{ match: RegExp; image: string }> = [
   { match: /hortensia herrero/i, image: hortensiaHerreroImage },
 ];
 
-// Curated free-license Unsplash photos per facility type (no copyright issues).
-const FACILITY_TYPE_IMAGES: Record<FacilityType, string> = {
-  museum: "https://images.unsplash.com/photo-1565060169187-5284a3f933e3?w=800&q=80&auto=format&fit=crop",
-  library: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&q=80&auto=format&fit=crop",
-  theater: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80&auto=format&fit=crop",
-  cultural_center: "https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&q=80&auto=format&fit=crop",
-  exhibition_hall: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80&auto=format&fit=crop",
-  auditorium: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&q=80&auto=format&fit=crop",
-  archive: "https://images.unsplash.com/photo-1568667256549-094345857637?w=800&q=80&auto=format&fit=crop",
-  other: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80&auto=format&fit=crop",
+// Curated free-license Unsplash photos per facility type (multiple per type for variety).
+const FACILITY_TYPE_IMAGES: Record<FacilityType, string[]> = {
+  museum: [
+    "https://images.unsplash.com/photo-1565060169187-5284a3f933e3?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1503152394-c571994fd383?w=800&q=80&auto=format&fit=crop",
+  ],
+  library: [
+    "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1568667256549-094345857637?w=800&q=80&auto=format&fit=crop",
+  ],
+  theater: [
+    "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?w=800&q=80&auto=format&fit=crop",
+  ],
+  cultural_center: [
+    "https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1572947650440-e8a97ef053b2?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1531058020387-3be344556be6?w=800&q=80&auto=format&fit=crop",
+  ],
+  exhibition_hall: [
+    "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1594784053779-b3b4e0a26ec0?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1577720580479-7d839d829c73?w=800&q=80&auto=format&fit=crop",
+  ],
+  auditorium: [
+    "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1499364615650-ec38552f4f34?w=800&q=80&auto=format&fit=crop",
+  ],
+  archive: [
+    "https://images.unsplash.com/photo-1568667256549-094345857637?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1583468982228-19f19164aee2?w=800&q=80&auto=format&fit=crop",
+  ],
+  other: [
+    "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80&auto=format&fit=crop",
+  ],
 };
 
-export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type" | "name">): string {
-  // Local curated images take precedence over remote image_url (DB) so user uploads always show.
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type" | "name"> & { id?: string }): string {
   const matchedImage = FACILITY_NAME_IMAGES.find(({ match }) => match.test(facility.name))?.image;
-  return matchedImage || facility.image_url || FACILITY_TYPE_IMAGES[facility.facility_type] || FACILITY_TYPE_IMAGES.other;
+  if (matchedImage) return matchedImage;
+  if (facility.image_url) return facility.image_url;
+  const pool = FACILITY_TYPE_IMAGES[facility.facility_type] ?? FACILITY_TYPE_IMAGES.other;
+  const key = (facility.id ?? "") + facility.name;
+  return pool[hashString(key) % pool.length];
 }
 
 // Haversine distance in kilometres
