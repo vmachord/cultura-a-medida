@@ -216,7 +216,15 @@ export default function Discover() {
 
               {userLocation && (
                 <div>
-                  <p className="mb-2 text-xs font-medium text-muted-foreground">Tiempo andando</p>
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    Tiempo andando
+                    {isochroneLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+                    {isochrone && !isochroneLoading && (
+                      <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                        ruta real
+                      </span>
+                    )}
+                  </p>
                   <div className="flex gap-1.5">
                     {RADIUS_OPTIONS.map((m) => (
                       <button
