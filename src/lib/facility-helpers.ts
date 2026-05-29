@@ -36,7 +36,7 @@ export const FACILITY_TYPE_ICONS: Record<FacilityType, string> = {
 
 const FACILITY_NAME_IMAGES: Array<{ match: RegExp; image: string }> = [
   { match: /ivam/i, image: ivamImage },
-  { match: /museo de bellas artes/i, image: bellasArtesImage },
+  { match: /bellas artes|san carlos/i, image: bellasArtesImage },
   { match: /universidad de valencia|la nau/i, image: nauImage },
   { match: /centre del carme|centro del carmen|cccc/i, image: ccccImage },
   { match: /hortensia herrero/i, image: hortensiaHerreroImage },

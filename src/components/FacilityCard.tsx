@@ -4,6 +4,7 @@ import { FACILITY_TYPE_LABELS } from "@/lib/types";
 import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
 import { MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface FacilityCardProps {
   facility: Facility;
@@ -16,7 +17,8 @@ interface FacilityCardProps {
 
 export function FacilityCard({ facility, reasons, distanceKm, className }: FacilityCardProps) {
   const flags = getFacilityComfortFlags(facility);
-  const imageUrl = getFacilityImage(facility);
+  const [imgSrc, setImgSrc] = useState(getFacilityImage(facility));
+  const fallback = getFacilityImage({ ...facility, image_url: null } as any);
 
   return (
     <Link
@@ -28,7 +30,8 @@ export function FacilityCard({ facility, reasons, distanceKm, className }: Facil
     >
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
         <img
-          src={imageUrl}
+          src={imgSrc}
+          onError={() => { if (imgSrc !== fallback) setImgSrc(fallback); }}
           alt={facility.name}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
