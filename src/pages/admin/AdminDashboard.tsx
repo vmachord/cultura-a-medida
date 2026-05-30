@@ -81,6 +81,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleBackfillImages = async () => {
+    setBackfilling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("backfill-facility-images");
+      if (error) throw error;
+      const d = data as { updated?: number; not_found?: number; candidates?: number } | null;
+      toast.success("Imágenes actualizadas", {
+        description: `${d?.updated ?? 0} encontradas en Wikipedia · ${d?.not_found ?? 0} sin coincidencia (caen al fallback por tipo).`,
+      });
+      await load();
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "No se pudo buscar imágenes";
+      toast.error("Error al buscar imágenes", { description: message });
+    } finally {
+      setBackfilling(false);
+    }
+
   const recentSearchItems = useMemo(() => {
     const all = stats?.recentSearches ?? [];
     const grouped = new Map<string, { label: string; count: number; kind: string; last: string }>();
