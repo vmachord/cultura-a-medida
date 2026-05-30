@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Building2, Users, Search, TrendingUp, RefreshCw } from "lucide-react";
+import { Loader2, Building2, Users, Search, TrendingUp, RefreshCw, Image as ImageIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import type { FacilityType } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [enriching, setEnriching] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
@@ -80,6 +81,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleEnrichImages = async () => {
+    setEnriching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("enrich-facility-images", { body: {} });
+      if (error) throw error;
+      const updated = (data as { updated?: number } | null)?.updated ?? 0;
+      const matched = (data as { matched?: number } | null)?.matched ?? 0;
+      toast.success(`Imágenes enriquecidas desde Wikipedia`, { description: `${updated} actualizadas · ${matched} coincidencias` });
+      await load();
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "No se pudo enriquecer";
+      toast.error("Error al buscar imágenes", { description: message });
+    } finally {
+      setEnriching(false);
+    }
+  };
+
   const recentSearchItems = useMemo(() => {
     const all = stats?.recentSearches ?? [];
     const grouped = new Map<string, { label: string; count: number; kind: string; last: string }>();
@@ -117,6 +135,10 @@ export default function AdminDashboard() {
           <Button onClick={() => { setRefreshing(true); load(); }} disabled={refreshing} variant="outline" size="sm">
             {refreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
             Actualizar
+          </Button>
+          <Button onClick={handleEnrichImages} disabled={enriching} variant="outline" size="sm">
+            {enriching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
+            Buscar imágenes en Wikipedia
           </Button>
           <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
             {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
