@@ -92,13 +92,21 @@ function hashString(s: string): number {
   return Math.abs(h);
 }
 
-export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type" | "name"> & { id?: string }): string {
+/**
+ * Returns a trusted image URL for the facility, or `null` when there isn't one.
+ * Catastro façade photos are explicitly rejected (they pick a random nearby
+ * building, not the actual venue). Callers should render a name-plate fallback
+ * when this returns null.
+ */
+export function getFacilityImage(
+  facility: Pick<Facility, "image_url" | "facility_type" | "name"> & { id?: string }
+): string | null {
   const matchedImage = FACILITY_NAME_IMAGES.find(({ match }) => match.test(facility.name))?.image;
   if (matchedImage) return matchedImage;
-  if (facility.image_url) return facility.image_url;
-  const pool = FACILITY_TYPE_IMAGES[facility.facility_type] ?? FACILITY_TYPE_IMAGES.other;
-  const key = (facility.id ?? "") + facility.name;
-  return pool[hashString(key) % pool.length];
+  if (facility.image_url && !/ovc\.catastro\.meh\.es/i.test(facility.image_url)) {
+    return facility.image_url;
+  }
+  return null;
 }
 
 // Haversine distance in kilometres
