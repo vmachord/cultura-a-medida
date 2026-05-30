@@ -236,10 +236,13 @@ Deno.serve(async (req) => {
       if (!name) continue;
 
       // Strip noisy "(València). " / city suffixes from name
-      const cleanName = name
+      const stripped = name
         .replace(/\s*\((?:Valencia\/València|València|Valencia)\)\.?/gi, "")
         .replace(/\s{2,}/g, " ")
         .trim();
+
+      const titled = smartTitleCase(stripped);
+      const cleanName = applyPrefix(titled, clase2);
 
       const [lng, lat] = feature.geometry.coordinates;
 
@@ -253,6 +256,10 @@ Deno.serve(async (req) => {
       // Direccion field sometimes contains garbage (dates). Filter obvious bad values.
       const rawAddr = (detail.direccion || "").trim();
       const address = /^\d{4}-\d{2}-\d{2}/.test(rawAddr) || !rawAddr ? null : rawAddr;
+
+      // Skip catastro façade photos (they're random nearby buildings, not the actual venue).
+      const photo = detail.foto_url?.trim() || null;
+      const trustedPhoto = photo && !/ovc\.catastro\.meh\.es/i.test(photo) ? photo : null;
 
       const c = comforts(type, cleanName);
       rows.push({
@@ -268,7 +275,7 @@ Deno.serve(async (req) => {
         phone: detail.telefono?.trim() || null,
         website: detail.web?.trim() || null,
         email: detail.email?.trim() || null,
-        image_url: detail.foto_url || null,
+        image_url: trustedPhoto,
         tags: detail.clase_1 ? [detail.clase_1] : [],
         ...c,
         source: "serapeum.uv.es",
