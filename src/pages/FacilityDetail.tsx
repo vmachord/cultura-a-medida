@@ -8,8 +8,20 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ArrowLeft, Heart, MapPin, Phone, Globe, CheckCircle2, Loader2, Navigation } from "lucide-react";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
-import { FACILITY_TYPE_ICONS, getFacilityComfortFlags } from "@/lib/facility-helpers";
+import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
 import { FacilityImage } from "@/components/FacilityImage";
+
+function shortenUrl(url: string, max = 42): string {
+  try {
+    const u = new URL(url);
+    const path = (u.pathname + u.search).replace(/\/$/, "");
+    const base = u.host.replace(/^www\./, "");
+    const full = path && path !== "/" ? `${base}${path}` : base;
+    return full.length > max ? full.slice(0, max - 1) + "…" : full;
+  } catch {
+    return url.length > max ? url.slice(0, max - 1) + "…" : url;
+  }
+}
 import { toast } from "sonner";
 
 export default function FacilityDetail() {
@@ -75,6 +87,7 @@ export default function FacilityDetail() {
 
   const flags = getFacilityComfortFlags(facility);
   const coordinates = `${facility.latitude.toFixed(6)}, ${facility.longitude.toFixed(6)}`;
+  const hasImage = !!getFacilityImage(facility);
 
   const copyText = async (text: string, message: string) => {
     await navigator.clipboard.writeText(text);
@@ -90,7 +103,9 @@ export default function FacilityDetail() {
       <div className="overflow-hidden rounded-3xl shadow-elegant">
         <div className="relative aspect-[21/9] w-full overflow-hidden bg-muted">
           <FacilityImage facility={facility} size="hero" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {hasImage && (
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          )}
           <Button
             onClick={toggleFavorite}
             variant="secondary"
@@ -99,15 +114,26 @@ export default function FacilityDetail() {
           >
             <Heart className={`h-5 w-5 text-white ${isFavorite ? "fill-white" : ""}`} />
           </Button>
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur">
-              <span>{FACILITY_TYPE_ICONS[facility.facility_type]}</span>
-              {FACILITY_TYPE_LABELS[facility.facility_type]}
-            </span>
-            <h1 className="mt-3 font-display text-3xl font-semibold leading-tight md:text-4xl">{facility.name}</h1>
-          </div>
+          {hasImage && (
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur">
+                <span>{FACILITY_TYPE_ICONS[facility.facility_type]}</span>
+                {FACILITY_TYPE_LABELS[facility.facility_type]}
+              </span>
+              <h1 className="mt-3 font-display text-3xl font-semibold leading-tight md:text-4xl">{facility.name}</h1>
+            </div>
+          )}
         </div>
       </div>
+
+      {!hasImage && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-medium">
+            <span>{FACILITY_TYPE_ICONS[facility.facility_type]}</span>
+            {FACILITY_TYPE_LABELS[facility.facility_type]}
+          </span>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <Card className="p-5">
@@ -122,8 +148,14 @@ export default function FacilityDetail() {
             {facility.website && (
               <p className="flex gap-2">
                 <Globe className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                <a href={facility.website} target="_blank" rel="noopener noreferrer" className="text-accent underline">
-                  {facility.website}
+                <a
+                  href={facility.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={facility.website}
+                  className="text-accent underline break-all"
+                >
+                  {shortenUrl(facility.website)}
                 </a>
               </p>
             )}
