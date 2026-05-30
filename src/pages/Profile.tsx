@@ -20,21 +20,31 @@ export default function Profile() {
     (async () => {
       const { data: ints } = await supabase
         .from("interactions")
-        .select("interaction_type, facility_id")
+        .select("interaction_type, facility_id, created_at")
         .eq("user_id", user.id)
-        .in("interaction_type", ["favorite", "unfavorite", "visited"]);
-      const favIds = new Set<string>(), visIds = new Set<string>();
+        .in("interaction_type", ["favorite", "unfavorite", "visited"])
+        .order("created_at", { ascending: true });
+      // Track latest interaction state per facility (favorite/unfavorite),
+      // keeping the timestamp of the most recent "favorite" action.
+      const favTime = new Map<string, string>(); // facility_id -> created_at of latest favorite
+      const visIds = new Set<string>();
       (ints ?? []).forEach((i: any) => {
         if (!i.facility_id) return;
-        if (i.interaction_type === "favorite") favIds.add(i.facility_id);
-        if (i.interaction_type === "unfavorite") favIds.delete(i.facility_id);
+        if (i.interaction_type === "favorite") favTime.set(i.facility_id, i.created_at);
+        if (i.interaction_type === "unfavorite") favTime.delete(i.facility_id);
         if (i.interaction_type === "visited") visIds.add(i.facility_id);
       });
+      const favIds = new Set<string>(favTime.keys());
       const ids = Array.from(new Set([...favIds, ...visIds]));
       if (ids.length) {
         const { data: facs } = await supabase.from("cultural_facilities").select("*").in("id", ids);
-        setFavorites((facs ?? []).filter((f) => favIds.has(f.id)));
-        setVisited((facs ?? []).filter((f) => visIds.has(f.id)));
+        const facsArr = facs ?? [];
+        // Sort favorites by most recently marked first
+        const favList = facsArr
+          .filter((f) => favIds.has(f.id))
+          .sort((a, b) => (favTime.get(b.id) ?? "").localeCompare(favTime.get(a.id) ?? ""));
+        setFavorites(favList);
+        setVisited(facsArr.filter((f) => visIds.has(f.id)));
       }
       setLoading(false);
     })();
