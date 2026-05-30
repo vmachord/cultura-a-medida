@@ -89,12 +89,8 @@ export default function FacilityDetail() {
 
       <div className="overflow-hidden rounded-3xl shadow-elegant">
         <div className="relative aspect-[21/9] w-full overflow-hidden bg-muted">
-          <img
-            src={getFacilityImage(facility)}
-            alt={facility.name}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <FacilityImage facility={facility} size="hero" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <Button
             onClick={toggleFavorite}
             variant="secondary"
