@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Building2, Users, Search, TrendingUp, RefreshCw } from "lucide-react";
+import { Loader2, Building2, Users, Search, TrendingUp, RefreshCw, ImageIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import type { FacilityType } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
