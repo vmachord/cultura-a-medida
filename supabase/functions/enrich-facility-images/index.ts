@@ -86,13 +86,15 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const overwrite = body?.overwrite === true;
+    const offset: number = Number(body?.offset ?? 0);
+    const limit: number = Number(body?.limit ?? 500);
 
     let query = supabase
       .from("cultural_facilities")
       .select("id,name,image_url")
-      .order("name");
+      .order("name")
+      .range(offset, offset + limit - 1);
     if (!overwrite) {
-      // Treat Catastro photos as missing too.
       query = query.or("image_url.is.null,image_url.ilike.%catastro%");
     }
     const { data: rows, error } = await query;
