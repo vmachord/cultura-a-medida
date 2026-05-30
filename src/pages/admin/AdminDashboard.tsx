@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
 
   const load = async () => {
     const [{ count: facCount }, { count: userCount }, { count: searchCount }, { data: typeBreakdown }, { data: recentSearches }] = await Promise.all([
