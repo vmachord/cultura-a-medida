@@ -148,8 +148,14 @@ export default function FacilityDetail() {
             {facility.website && (
               <p className="flex gap-2">
                 <Globe className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                <a href={facility.website} target="_blank" rel="noopener noreferrer" className="text-accent underline">
-                  {facility.website}
+                <a
+                  href={facility.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={facility.website}
+                  className="text-accent underline break-all"
+                >
+                  {shortenUrl(facility.website)}
                 </a>
               </p>
             )}
