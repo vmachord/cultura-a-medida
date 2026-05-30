@@ -97,6 +97,9 @@ export default function AdminDashboard() {
     } finally {
       setBackfilling(false);
     }
+  };
+
+
 
   const recentSearchItems = useMemo(() => {
     const all = stats?.recentSearches ?? [];
