@@ -136,6 +136,10 @@ export default function AdminDashboard() {
             {refreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
             Actualizar
           </Button>
+          <Button onClick={handleEnrichImages} disabled={enriching} variant="outline" size="sm">
+            {enriching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
+            Buscar imágenes en Wikipedia
+          </Button>
           <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm">
             {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
             Sincronizar datos abiertos
