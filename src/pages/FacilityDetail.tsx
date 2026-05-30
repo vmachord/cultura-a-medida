@@ -103,7 +103,9 @@ export default function FacilityDetail() {
       <div className="overflow-hidden rounded-3xl shadow-elegant">
         <div className="relative aspect-[21/9] w-full overflow-hidden bg-muted">
           <FacilityImage facility={facility} size="hero" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {hasImage && (
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          )}
           <Button
             onClick={toggleFavorite}
             variant="secondary"
@@ -112,15 +114,26 @@ export default function FacilityDetail() {
           >
             <Heart className={`h-5 w-5 text-white ${isFavorite ? "fill-white" : ""}`} />
           </Button>
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur">
-              <span>{FACILITY_TYPE_ICONS[facility.facility_type]}</span>
-              {FACILITY_TYPE_LABELS[facility.facility_type]}
-            </span>
-            <h1 className="mt-3 font-display text-3xl font-semibold leading-tight md:text-4xl">{facility.name}</h1>
-          </div>
+          {hasImage && (
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium backdrop-blur">
+                <span>{FACILITY_TYPE_ICONS[facility.facility_type]}</span>
+                {FACILITY_TYPE_LABELS[facility.facility_type]}
+              </span>
+              <h1 className="mt-3 font-display text-3xl font-semibold leading-tight md:text-4xl">{facility.name}</h1>
+            </div>
+          )}
         </div>
       </div>
+
+      {!hasImage && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-medium">
+            <span>{FACILITY_TYPE_ICONS[facility.facility_type]}</span>
+            {FACILITY_TYPE_LABELS[facility.facility_type]}
+          </span>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <Card className="p-5">
