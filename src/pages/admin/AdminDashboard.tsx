@@ -143,6 +143,10 @@ export default function AdminDashboard() {
             {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
             Sincronizar datos abiertos
           </Button>
+          <Button onClick={handleBackfillImages} disabled={backfilling} variant="outline" size="sm">
+            {backfilling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
+            Buscar imágenes (Wikipedia)
+          </Button>
         </div>
       </div>
 
