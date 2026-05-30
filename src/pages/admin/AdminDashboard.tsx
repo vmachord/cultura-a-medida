@@ -121,8 +121,9 @@ export default function AdminDashboard() {
       .sort((a, b) => b.last.localeCompare(a.last));
   }, [stats?.recentSearches]);
 
-  const [visibleSearches, setVisibleSearches] = useState(10);
-  useEffect(() => { setVisibleSearches(10); }, [recentSearchItems.length]);
+  const [searchPage, setSearchPage] = useState(0);
+  const perPage = 10;
+  useEffect(() => { setSearchPage(0); }, [recentSearchItems.length]);
 
   if (loading) return <div className="flex h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-accent" /></div>;
 
@@ -174,7 +175,7 @@ export default function AdminDashboard() {
           <p className="text-sm text-muted-foreground">Aún no hay búsquedas registradas. A medida que la ciudadanía use la app, aparecerán aquí.</p>
         ) : (
           <div className="space-y-2">
-            {recentSearchItems.slice(0, visibleSearches).map((it, i) => (
+            {recentSearchItems.slice(searchPage * perPage, (searchPage + 1) * perPage).map((it, i) => (
               <div key={`${it.label}-${i}`} className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2 text-sm">
                 <Search className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="font-medium">{it.label}</span>
@@ -182,13 +183,18 @@ export default function AdminDashboard() {
                 <span className="ml-auto text-xs text-muted-foreground">×{it.count}</span>
               </div>
             ))}
-            {recentSearchItems.length > visibleSearches && (
-              <div className="pt-2 flex justify-center">
-                <Button variant="outline" size="sm" onClick={() => setVisibleSearches((n) => n + 10)}>
-                  Cargar más ({recentSearchItems.length - visibleSearches} restantes)
+            <div className="pt-2 flex justify-center gap-2">
+              {searchPage > 0 && (
+                <Button variant="outline" size="sm" onClick={() => setSearchPage((p) => Math.max(0, p - 1))}>
+                  Anterior
                 </Button>
-              </div>
-            )}
+              )}
+              {recentSearchItems.length > (searchPage + 1) * perPage && (
+                <Button variant="outline" size="sm" onClick={() => setSearchPage((p) => p + 1)}>
+                  Cargar más ({recentSearchItems.length - (searchPage + 1) * perPage} restantes)
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </Card>
