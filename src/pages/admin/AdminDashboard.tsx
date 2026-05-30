@@ -121,8 +121,9 @@ export default function AdminDashboard() {
       .sort((a, b) => b.last.localeCompare(a.last));
   }, [stats?.recentSearches]);
 
-  const [visibleSearches, setVisibleSearches] = useState(10);
-  useEffect(() => { setVisibleSearches(10); }, [recentSearchItems.length]);
+  const [searchPage, setSearchPage] = useState(0);
+  const perPage = 10;
+  useEffect(() => { setSearchPage(0); }, [recentSearchItems.length]);
 
   if (loading) return <div className="flex h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-accent" /></div>;
 
