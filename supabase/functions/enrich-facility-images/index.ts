@@ -104,24 +104,27 @@ Deno.serve(async (req) => {
 
     let matched = 0;
     let updated = 0;
-    const limit = Math.min(rows?.length ?? 0, body?.limit ?? 500);
+    const total = rows?.length ?? 0;
 
-    for (let i = 0; i < limit; i++) {
+    for (let i = 0; i < total; i++) {
       const f = rows![i];
       const img = await findWikiImage(f.name);
-      if (!img) continue;
+      if (!img) {
+        console.log(`[enrich] no-match: ${f.name}`);
+        continue;
+      }
       matched++;
+      console.log(`[enrich] match: ${f.name} → ${img}`);
       const { error: upErr } = await supabase
         .from("cultural_facilities")
         .update({ image_url: img })
         .eq("id", f.id);
       if (!upErr) updated++;
-      // Be polite to Wikipedia.
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise((r) => setTimeout(r, 80));
     }
 
     return new Response(
-      JSON.stringify({ ok: true, scanned: limit, matched, updated }),
+      JSON.stringify({ ok: true, scanned: total, matched, updated, offset }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
