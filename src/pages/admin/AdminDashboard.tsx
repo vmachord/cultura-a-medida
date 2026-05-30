@@ -81,6 +81,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleEnrichImages = async () => {
+    setEnriching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("enrich-facility-images", { body: {} });
+      if (error) throw error;
+      const updated = (data as { updated?: number } | null)?.updated ?? 0;
+      const matched = (data as { matched?: number } | null)?.matched ?? 0;
+      toast.success(`Imágenes enriquecidas desde Wikipedia`, { description: `${updated} actualizadas · ${matched} coincidencias` });
+      await load();
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "No se pudo enriquecer";
+      toast.error("Error al buscar imágenes", { description: message });
+    } finally {
+      setEnriching(false);
+    }
+  };
+
   const recentSearchItems = useMemo(() => {
     const all = stats?.recentSearches ?? [];
     const grouped = new Map<string, { label: string; count: number; kind: string; last: string }>();
