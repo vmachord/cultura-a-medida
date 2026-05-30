@@ -20,8 +20,6 @@ interface FacilityCardProps {
 export function FacilityCard({ facility, reasons, distanceKm, className }: FacilityCardProps) {
   const { user, profile } = useAuth();
   const flags = getFacilityComfortFlags(facility);
-  const [imgSrc, setImgSrc] = useState(getFacilityImage(facility));
-  const fallback = getFacilityImage({ ...facility, image_url: null } as any);
   const [isFav, setIsFav] = useState(false);
 
   useEffect(() => {
