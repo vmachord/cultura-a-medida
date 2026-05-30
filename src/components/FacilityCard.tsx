@@ -59,12 +59,9 @@ export function FacilityCard({ facility, reasons, distanceKm, className }: Facil
       )}
     >
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
-        <img
-          src={imgSrc}
-          onError={() => { if (imgSrc !== fallback) setImgSrc(fallback); }}
-          alt={facility.name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        <FacilityImage
+          facility={facility}
+          className="group-hover:scale-105"
         />
         <button
           onClick={toggleFav}
