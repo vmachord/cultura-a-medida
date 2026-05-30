@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [enriching, setEnriching] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
