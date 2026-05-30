@@ -1,0 +1,1 @@
+UPDATE public.cultural_facilities SET image_url = NULL WHERE image_url ILIKE '%upload.wikimedia.org%';
