@@ -87,6 +87,7 @@ export default function FacilityDetail() {
 
   const flags = getFacilityComfortFlags(facility);
   const coordinates = `${facility.latitude.toFixed(6)}, ${facility.longitude.toFixed(6)}`;
+  const hasImage = !!getFacilityImage(facility);
 
   const copyText = async (text: string, message: string) => {
     await navigator.clipboard.writeText(text);
