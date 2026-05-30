@@ -8,8 +8,20 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ArrowLeft, Heart, MapPin, Phone, Globe, CheckCircle2, Loader2, Navigation } from "lucide-react";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
-import { FACILITY_TYPE_ICONS, getFacilityComfortFlags } from "@/lib/facility-helpers";
+import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
 import { FacilityImage } from "@/components/FacilityImage";
+
+function shortenUrl(url: string, max = 42): string {
+  try {
+    const u = new URL(url);
+    const path = (u.pathname + u.search).replace(/\/$/, "");
+    const base = u.host.replace(/^www\./, "");
+    const full = path && path !== "/" ? `${base}${path}` : base;
+    return full.length > max ? full.slice(0, max - 1) + "…" : full;
+  } catch {
+    return url.length > max ? url.slice(0, max - 1) + "…" : url;
+  }
+}
 import { toast } from "sonner";
 
 export default function FacilityDetail() {
