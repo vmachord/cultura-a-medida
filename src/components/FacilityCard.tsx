@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
-import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
+import { FACILITY_TYPE_ICONS, getFacilityComfortFlags } from "@/lib/facility-helpers";
+import { FacilityImage } from "@/components/FacilityImage";
 import { Heart, MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
