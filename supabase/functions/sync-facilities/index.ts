@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
         phone: detail.telefono?.trim() || null,
         website: detail.web?.trim() || null,
         email: detail.email?.trim() || null,
-        image_url: detail.foto_url && !/catastro\.(meh|minhap)\.es/i.test(detail.foto_url) ? detail.foto_url : null,
+        image_url: detail.foto_url || null,
         tags: detail.clase_1 ? [detail.clase_1] : [],
         ...c,
         source: "serapeum.uv.es",

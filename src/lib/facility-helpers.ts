@@ -92,18 +92,10 @@ function hashString(s: string): number {
   return Math.abs(h);
 }
 
-// URLs we don't trust as real photos of the facility (e.g. Spanish cadastro
-// returns frequently-wrong or generic facade photos by cadastral reference).
-const UNTRUSTED_IMAGE_PATTERNS = [/catastro\.meh\.es/i, /catastro\.minhap\.es/i];
-
 export function getFacilityImage(facility: Pick<Facility, "image_url" | "facility_type" | "name"> & { id?: string }): string {
   const matchedImage = FACILITY_NAME_IMAGES.find(({ match }) => match.test(facility.name))?.image;
   if (matchedImage) return matchedImage;
-  const trustedUrl =
-    facility.image_url && !UNTRUSTED_IMAGE_PATTERNS.some((re) => re.test(facility.image_url!))
-      ? facility.image_url
-      : null;
-  if (trustedUrl) return trustedUrl;
+  if (facility.image_url) return facility.image_url;
   const pool = FACILITY_TYPE_IMAGES[facility.facility_type] ?? FACILITY_TYPE_IMAGES.other;
   const key = (facility.id ?? "") + facility.name;
   return pool[hashString(key) % pool.length];
