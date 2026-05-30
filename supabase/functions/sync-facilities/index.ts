@@ -57,6 +57,90 @@ const CLASE2_MAP: Record<string, FacilityType | null> = {
   // Skipped: "Comercio cultural", "Tecnotecas", "Escuelas no regladas"
 };
 
+// More specific human-readable prefix per Serapeum clase_2.
+// Used to disambiguate generic names ("ABC EL SALER" → "Cine ABC El Saler").
+const CLASE2_PREFIX: Record<string, string> = {
+  "Museos de artes": "Museo",
+  "Museos de ciencias": "Museo de Ciencias",
+  "Ecomuseos": "Ecomuseo",
+  "Museos de sitio": "Museo",
+  "Casas museo": "Casa Museo",
+  "Bibliotecas públicas": "Biblioteca",
+  "Bibliotecas especializadas": "Biblioteca",
+  "Mediatecas": "Mediateca",
+  "Teatros públicos": "Teatro",
+  "Teatros comerciales": "Teatro",
+  "Teatros independientes": "Teatro",
+  "Auditorios públicos": "Auditorio",
+  "Recintos multiusos": "Recinto",
+  "Salas de conciertos": "Sala de Conciertos",
+  "Galerías de arte": "Galería",
+  "Archivos históricos": "Archivo",
+  "Archivos comunitarios": "Archivo",
+  "Centros culturales": "Centro Cultural",
+  "Centros de interpretación": "Centro de Interpretación",
+  "Casas de cultura": "Casa de Cultura",
+  "Centros socioculturales": "Centro Sociocultural",
+  "Universidades populares": "Universidad Popular",
+  "Centros juveniles": "Centro Juvenil",
+  "Laboratorios ciudadanos": "Laboratorio Ciudadano",
+  "Espacios comunitarios": "Espacio Comunitario",
+  "Espacios de articulación": "Espacio de Articulación",
+  "Espacios de creación": "Espacio de Creación",
+  "Centros audiovisuales": "Centro Audiovisual",
+  "Fábricas de creación": "Fábrica de Creación",
+  "Viveros creativos": "Vivero Creativo",
+  "Centros de formación": "Centro de Formación",
+  "Salas de cine": "Cine",
+  "Salas de baile": "Sala de Baile",
+};
+
+// Convert ALL-CAPS names to Title Case while preserving small connector words.
+function smartTitleCase(input: string): string {
+  const low = new Set(["de", "del", "la", "el", "los", "las", "y", "i", "en", "a", "al", "para", "por", "con", "sin"]);
+  // Already has lowercase letters → leave as-is.
+  if (/[a-zà-ÿñç]/.test(input)) return input;
+  return input
+    .toLowerCase()
+    .split(/(\s+|-|\.)/)
+    .map((tok, i) => {
+      if (/^\s+$|^[-.]$/.test(tok)) return tok;
+      if (i > 0 && low.has(tok)) return tok;
+      return tok.charAt(0).toUpperCase() + tok.slice(1);
+    })
+    .join("");
+}
+
+// Add a type prefix only if the name doesn't already begin with the same concept.
+function applyPrefix(cleanName: string, clase2: string): string {
+  const prefix = CLASE2_PREFIX[clase2];
+  if (!prefix) return cleanName;
+  const lower = cleanName.toLowerCase();
+  const firstWord = prefix.toLowerCase().split(" ")[0];
+  const synonyms: Record<string, string[]> = {
+    cine: ["cine", "cines", "cinema", "cinemes", "kinépolis", "kinepolis", "yelmo"],
+    teatro: ["teatro", "teatre"],
+    museo: ["museo", "museu"],
+    biblioteca: ["biblioteca", "bib", "bib.", "hemeroteca"],
+    mediateca: ["mediateca"],
+    auditorio: ["auditorio", "auditori", "palau"],
+    "galería": ["galería", "galeria", "galer."],
+    archivo: ["archivo", "arxiu"],
+    centro: ["centro", "centre", "casa", "casal", "espai", "espacio", "ateneu", "ateneo", "agrupación", "agrupacion", "asociación", "asociacion", "societat", "sociedad"],
+    casa: ["casa"],
+    ecomuseo: ["ecomuseo"],
+    sala: ["sala"],
+    vivero: ["vivero", "viver"],
+    fábrica: ["fábrica", "fabrica", "fàbrica"],
+    laboratorio: ["laboratorio", "lab."],
+    universidad: ["universidad", "universitat"],
+    recinto: ["recinto"],
+  };
+  const hits = synonyms[firstWord] ?? [firstWord];
+  if (hits.some((w) => lower === w || lower.startsWith(w + " "))) return cleanName;
+  return `${prefix} ${cleanName}`;
+}
+
 // Valencia city bbox (excludes Torrent, Mislata, etc.)
 const BBOX = { minLat: 39.43, maxLat: 39.52, minLng: -0.41, maxLng: -0.30 };
 
@@ -152,10 +236,13 @@ Deno.serve(async (req) => {
       if (!name) continue;
 
       // Strip noisy "(València). " / city suffixes from name
-      const cleanName = name
+      const stripped = name
         .replace(/\s*\((?:Valencia\/València|València|Valencia)\)\.?/gi, "")
         .replace(/\s{2,}/g, " ")
         .trim();
+
+      const titled = smartTitleCase(stripped);
+      const cleanName = applyPrefix(titled, clase2);
 
       const [lng, lat] = feature.geometry.coordinates;
 
@@ -169,6 +256,10 @@ Deno.serve(async (req) => {
       // Direccion field sometimes contains garbage (dates). Filter obvious bad values.
       const rawAddr = (detail.direccion || "").trim();
       const address = /^\d{4}-\d{2}-\d{2}/.test(rawAddr) || !rawAddr ? null : rawAddr;
+
+      // Skip catastro façade photos (they're random nearby buildings, not the actual venue).
+      const photo = detail.foto_url?.trim() || null;
+      const trustedPhoto = photo && !/ovc\.catastro\.meh\.es/i.test(photo) ? photo : null;
 
       const c = comforts(type, cleanName);
       rows.push({
@@ -184,7 +275,7 @@ Deno.serve(async (req) => {
         phone: detail.telefono?.trim() || null,
         website: detail.web?.trim() || null,
         email: detail.email?.trim() || null,
-        image_url: detail.foto_url || null,
+        image_url: trustedPhoto,
         tags: detail.clase_1 ? [detail.clase_1] : [],
         ...c,
         source: "serapeum.uv.es",

@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
-import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
+import { FACILITY_TYPE_ICONS, getFacilityComfortFlags } from "@/lib/facility-helpers";
+import { FacilityImage } from "@/components/FacilityImage";
 import { Heart, MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -19,8 +20,6 @@ interface FacilityCardProps {
 export function FacilityCard({ facility, reasons, distanceKm, className }: FacilityCardProps) {
   const { user, profile } = useAuth();
   const flags = getFacilityComfortFlags(facility);
-  const [imgSrc, setImgSrc] = useState(getFacilityImage(facility));
-  const fallback = getFacilityImage({ ...facility, image_url: null } as any);
   const [isFav, setIsFav] = useState(false);
 
   useEffect(() => {
@@ -60,12 +59,9 @@ export function FacilityCard({ facility, reasons, distanceKm, className }: Facil
       )}
     >
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
-        <img
-          src={imgSrc}
-          onError={() => { if (imgSrc !== fallback) setImgSrc(fallback); }}
-          alt={facility.name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        <FacilityImage
+          facility={facility}
+          className="group-hover:scale-105"
         />
         <button
           onClick={toggleFav}
