@@ -27,9 +27,13 @@ interface WikiPageImagesResp {
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
     const r = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json" } });
-    if (!r.ok) return null;
+    if (!r.ok) {
+      console.warn(`[wiki] ${r.status} ${url}`);
+      return null;
+    }
     return (await r.json()) as T;
-  } catch {
+  } catch (e) {
+    console.warn(`[wiki] fetch err ${(e as Error).message}`);
     return null;
   }
 }
@@ -42,28 +46,45 @@ function stripPrefix(name: string): string {
   ).trim();
 }
 
+// Convert ALL-CAPS to Title Case so Wikipedia full-text search behaves sensibly.
+function smartCase(s: string): string {
+  if (/[a-zà-ÿñç]/.test(s)) return s;
+  return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+// Significant words: >3 chars, drop generic noise.
+const NOISE = new Set([
+  "valencia", "valència", "valenciana", "valenciano", "comunidad", "biblioteca",
+  "centro", "centre", "casa", "casal", "museo", "museu", "teatro", "teatre",
+  "sala", "espai", "espacio", "sociedad", "societat", "agrupación", "agrupacion",
+  "asociación", "asociacion", "musical", "música", "musica", "escuela", "escola",
+  "documentación", "documentacion", "estudio", "estudi", "auditorio", "auditori",
+  "palau", "palacio", "edificio", "gran", "real", "san", "santa", "sant", "lcrm",
+]);
+
 async function findWikiImage(name: string): Promise<string | null> {
-  const stripped = stripPrefix(name);
-  const queries = [
-    `${name} Valencia`,
+  const cleaned = smartCase(name);
+  const stripped = stripPrefix(cleaned);
+  const queries = Array.from(new Set([
     `${stripped} Valencia`,
-    name,
+    `${cleaned} Valencia`,
     stripped,
-  ];
+    cleaned,
+  ]));
   for (const lang of ["es", "en"]) {
     for (const q of queries) {
       const search = await fetchJson<WikiSearchResp>(
-        `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=1&format=json&origin=*`,
+        `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=1&format=json`,
       );
       const hit = search?.query?.search?.[0];
       if (!hit) continue;
       const titleLower = hit.title.toLowerCase();
-      // Sanity: title should overlap meaningfully with the stripped name (>= 1 significant word)
-      const words = stripped.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
-      if (words.length && !words.some((w) => titleLower.includes(w))) continue;
+      // Sanity: at least one significant (non-generic) word must overlap.
+      const sig = stripped.toLowerCase().split(/[\s.,'’"()]+/).filter((w) => w.length > 3 && !NOISE.has(w));
+      if (sig.length && !sig.some((w) => titleLower.includes(w))) continue;
 
       const img = await fetchJson<WikiPageImagesResp>(
-        `https://${lang}.wikipedia.org/w/api.php?action=query&prop=pageimages&piprop=original|thumbnail&pithumbsize=800&titles=${encodeURIComponent(hit.title)}&format=json&origin=*`,
+        `https://${lang}.wikipedia.org/w/api.php?action=query&prop=pageimages&piprop=original|thumbnail&pithumbsize=800&titles=${encodeURIComponent(hit.title)}&format=json`,
       );
       const pages = img?.query?.pages;
       if (!pages) continue;
@@ -74,6 +95,7 @@ async function findWikiImage(name: string): Promise<string | null> {
   }
   return null;
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
