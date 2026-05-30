@@ -14,33 +14,33 @@ const corsHeaders = {
 
 const UA = "CulturaAMedida/1.0 (https://lovable.dev; cultural facilities enrichment)";
 
-// Cultural venue Wikidata classes (P31/P279*).
-//  Q33506   museum
-//  Q207694  art museum
-//  Q7075    library
-//  Q24354   theatre building
-//  Q41253   movie theater
-//  Q1007870 art gallery
-//  Q132241  festival venue / cultural centre
-//  Q1004791 cultural center
-//  Q166118  archive
-//  Q11315   shopping & concert venue (often hosts cinemas)
-//  Q57660343 auditorium
+// Cultural venue Wikidata classes. We use direct P31 (no P279* closure — too
+// expensive on the public endpoint and causes 502s) and pull a wide list.
+//  Q33506 museum · Q207694 art museum · Q2772772 history museum · Q2516357 ethnology m.
+//  Q2398990 archaeology m. · Q7075 library · Q24354 theatre · Q41253 movie theater
+//  Q1007870 art gallery · Q1004791 cultural center · Q166118 archive
+//  Q57660343 auditorium · Q153562 opera house · Q187456 nightclub-venue (some palaus)
 const SPARQL = `
 SELECT ?item ?itemLabel ?lat ?lon ?image WHERE {
-  ?item wdt:P31/wdt:P279* ?type .
+  SERVICE wikibase:around {
+    ?item wdt:P625 ?coord .
+    bd:serviceParam wikibase:center "Point(-0.3763 39.4699)"^^geo:wktLiteral .
+    bd:serviceParam wikibase:radius "30" .
+  }
+  ?item wdt:P31 ?type .
   VALUES ?type {
-    wd:Q33506 wd:Q207694 wd:Q7075 wd:Q24354 wd:Q41253
-    wd:Q1007870 wd:Q1004791 wd:Q166118 wd:Q57660343
+    wd:Q33506 wd:Q207694 wd:Q2772772 wd:Q2516357 wd:Q2398990
+    wd:Q7075 wd:Q24354 wd:Q41253 wd:Q1007870 wd:Q1004791
+    wd:Q166118 wd:Q57660343 wd:Q153562
   } .
   ?item wdt:P18 ?image .
   ?item p:P625 ?stmt .
   ?stmt psv:P625 ?node .
   ?node wikibase:geoLatitude ?lat .
   ?node wikibase:geoLongitude ?lon .
-  FILTER(?lat > 39.30 && ?lat < 39.60 && ?lon > -0.50 && ?lon < -0.20)
   SERVICE wikibase:label { bd:serviceParam wikibase:language "es,en,ca,val" }
 }
+LIMIT 2000
 `;
 
 interface WdRow {
