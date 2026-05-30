@@ -174,7 +174,7 @@ export default function AdminDashboard() {
           <p className="text-sm text-muted-foreground">Aún no hay búsquedas registradas. A medida que la ciudadanía use la app, aparecerán aquí.</p>
         ) : (
           <div className="space-y-2">
-            {recentSearchItems.map((it, i) => (
+            {recentSearchItems.slice(0, visibleSearches).map((it, i) => (
               <div key={`${it.label}-${i}`} className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2 text-sm">
                 <Search className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="font-medium">{it.label}</span>
@@ -182,6 +182,13 @@ export default function AdminDashboard() {
                 <span className="ml-auto text-xs text-muted-foreground">×{it.count}</span>
               </div>
             ))}
+            {recentSearchItems.length > visibleSearches && (
+              <div className="pt-2 flex justify-center">
+                <Button variant="outline" size="sm" onClick={() => setVisibleSearches((n) => n + 10)}>
+                  Cargar más ({recentSearchItems.length - visibleSearches} restantes)
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Card>
