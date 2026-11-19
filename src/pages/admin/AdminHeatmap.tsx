@@ -41,7 +41,10 @@ export default function AdminHeatmap() {
   useEffect(() => {
     if (loading || !containerRef.current || mapRef.current) return;
     const map = L.map(containerRef.current).setView(VALENCIA_CENTER, 12);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", { attribution: "© OpenStreetMap © CARTO" }).addTo(map);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(map);
     mapRef.current = map;
     setTimeout(() => map.invalidateSize(), 0);
     return () => { map.remove(); mapRef.current = null; heatRef.current = null; };
