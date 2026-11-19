@@ -27,10 +27,10 @@ export default function AdminDashboard() {
 
   const load = async () => {
     const [{ count: facCount }, { count: userCount }, { count: searchCount }, { data: typeBreakdown }, { data: recentSearches }] = await Promise.all([
-      supabase.from("cultural_facilities").select("*", { count: "exact", head: true }),
+      supabase.from("cultural_facilities_public").select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("interactions").select("*", { count: "exact", head: true }).eq("interaction_type", "search"),
-      supabase.from("cultural_facilities").select("facility_type"),
+      supabase.from("cultural_facilities_public").select("facility_type"),
       supabase.from("interactions").select("searched_type, search_query, district, created_at").eq("interaction_type", "search").order("created_at", { ascending: false }).limit(200),
     ]);
 

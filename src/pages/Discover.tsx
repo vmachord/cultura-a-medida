@@ -40,7 +40,7 @@ export default function Discover() {
 
   useEffect(() => {
     supabase
-      .from("cultural_facilities")
+      .from("cultural_facilities_public")
       .select("*")
       .order("name")
       .then(({ data }) => {

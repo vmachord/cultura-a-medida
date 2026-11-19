@@ -3,7 +3,7 @@ import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
 import { FACILITY_TYPE_ICONS, getFacilityComfortFlags } from "@/lib/facility-helpers";
 import { FacilityImage } from "@/components/FacilityImage";
-import { Heart, MapPin, Phone } from "lucide-react";
+import { Heart, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,11 +97,6 @@ export function FacilityCard({ facility, reasons, distanceKm, className }: Facil
           <p className="flex items-start gap-1.5">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span className="line-clamp-1">{facility.address}</span>
-          </p>
-        )}
-        {facility.phone && (
-          <p className="flex items-center gap-1.5">
-            <Phone className="h-3.5 w-3.5 shrink-0" /> {facility.phone}
           </p>
         )}
       </div>

@@ -20,7 +20,7 @@ export default function ForYou() {
   useEffect(() => {
     if (!user) return;
     Promise.all([
-      supabase.from("cultural_facilities").select("*"),
+      supabase.from("cultural_facilities_public").select("*"),
       supabase.from("interactions").select("interaction_type, facility_id").eq("user_id", user.id),
       supabase.functions.invoke("cf-recommendations"),
     ]).then(([fRes, iRes, cfRes]) => {

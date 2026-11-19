@@ -53,6 +53,13 @@ export type Database = {
             referencedRelation: "cultural_facilities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "comfort_ratings_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "cultural_facilities_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       cultural_facilities: {
@@ -190,6 +197,13 @@ export type Database = {
             referencedRelation: "cultural_facilities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "interactions_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "cultural_facilities_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -281,7 +295,81 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      cultural_facilities_public: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          description: string | null
+          district: string | null
+          external_id: string | null
+          facility_type: Database["public"]["Enums"]["facility_type"] | null
+          has_accessibility: boolean | null
+          has_climate_control: boolean | null
+          has_family_zone: boolean | null
+          has_lockers: boolean | null
+          id: string | null
+          image_url: string | null
+          is_quiet: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string | null
+          neighborhood: string | null
+          schedule: string | null
+          source: string | null
+          tags: string[] | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          district?: string | null
+          external_id?: string | null
+          facility_type?: Database["public"]["Enums"]["facility_type"] | null
+          has_accessibility?: boolean | null
+          has_climate_control?: boolean | null
+          has_family_zone?: boolean | null
+          has_lockers?: boolean | null
+          id?: string | null
+          image_url?: string | null
+          is_quiet?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string | null
+          neighborhood?: string | null
+          schedule?: string | null
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          district?: string | null
+          external_id?: string | null
+          facility_type?: Database["public"]["Enums"]["facility_type"] | null
+          has_accessibility?: boolean | null
+          has_climate_control?: boolean | null
+          has_family_zone?: boolean | null
+          has_lockers?: boolean | null
+          id?: string | null
+          image_url?: string | null
+          is_quiet?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string | null
+          neighborhood?: string | null
+          schedule?: string | null
+          source?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

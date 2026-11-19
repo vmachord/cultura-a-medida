@@ -37,7 +37,7 @@ export default function Profile() {
       const favIds = new Set<string>(favTime.keys());
       const ids = Array.from(new Set([...favIds, ...visIds]));
       if (ids.length) {
-        const { data: facs } = await supabase.from("cultural_facilities").select("*").in("id", ids);
+        const { data: facs } = await supabase.from("cultural_facilities_public").select("*").in("id", ids);
         const facsArr = facs ?? [];
         // Sort favorites by most recently marked first
         const favList = facsArr

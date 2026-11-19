@@ -32,7 +32,7 @@ export default function AdminGaps() {
     (async () => {
       const [{ data: districts }, { data: facilities }, { data: interactions }] = await Promise.all([
         supabase.from("valencia_districts").select("*"),
-        supabase.from("cultural_facilities").select("id, latitude, longitude, facility_type"),
+        supabase.from("cultural_facilities_public").select("id, latitude, longitude, facility_type"),
         supabase.from("interactions").select("user_lat, user_lng, searched_type, interaction_type")
           .in("interaction_type", ["search", "view", "favorite"]),
       ]);

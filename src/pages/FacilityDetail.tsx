@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Heart, MapPin, Phone, Globe, CheckCircle2, Loader2, Navigation } from "lucide-react";
+import { ArrowLeft, Heart, MapPin, Globe, CheckCircle2, Loader2, Navigation } from "lucide-react";
 import type { Facility } from "@/lib/types";
 import { FACILITY_TYPE_LABELS } from "@/lib/types";
 import { FACILITY_TYPE_ICONS, getFacilityComfortFlags, getFacilityImage } from "@/lib/facility-helpers";
@@ -35,7 +35,7 @@ export default function FacilityDetail() {
   useEffect(() => {
     if (!id || !user) return;
     Promise.all([
-      supabase.from("cultural_facilities").select("*").eq("id", id).maybeSingle(),
+      supabase.from("cultural_facilities_public").select("*").eq("id", id).maybeSingle(),
       supabase.from("interactions").select("interaction_type").eq("user_id", user.id).eq("facility_id", id),
     ]).then(([fRes, iRes]) => {
       setFacility(fRes.data);
@@ -141,9 +141,6 @@ export default function FacilityDetail() {
           <div className="space-y-2 text-sm">
             {facility.address && (
               <p className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" /> {facility.address}</p>
-            )}
-            {facility.phone && (
-              <p className="flex gap-2"><Phone className="mt-0.5 h-4 w-4 shrink-0 text-accent" /> {facility.phone}</p>
             )}
             {facility.website && (
               <p className="flex gap-2">

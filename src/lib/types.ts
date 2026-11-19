@@ -6,7 +6,7 @@ export type AppRole = Database["public"]["Enums"]["app_role"];
 export type InteractionType = Database["public"]["Enums"]["interaction_type"];
 export type ComfortDimension = Database["public"]["Enums"]["comfort_dimension"];
 
-export type Facility = Database["public"]["Tables"]["cultural_facilities"]["Row"];
+export type Facility = Database["public"]["Views"]["cultural_facilities_public"]["Row"];
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Interaction = Database["public"]["Tables"]["interactions"]["Row"];
 export type ComfortRating = Database["public"]["Tables"]["comfort_ratings"]["Row"];

@@ -15,8 +15,8 @@ export default function Landing() {
 
   useEffect(() => {
     supabase
-      .from("cultural_facilities")
-      .select("*", { count: "exact", head: true })
+      .from("cultural_facilities_public")
+      .select("id", { count: "exact", head: true })
       .then(({ count }) => setFacilityCount(count ?? 0));
   }, []);
 
